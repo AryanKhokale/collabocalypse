@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Auth System</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 40px; line-height: 1.6; text-align: center;}
+    .loader { border: 16px solid #f3f3f3; border-top: 16px solid #3498db; border-radius: 50%; width: 60px; height: 60px; animation: spin 2s linear infinite; margin: 20px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    button { padding: 12px 24px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; }
+  </style>
+</head>
+<body>
+
+<h2>Collaborative Editor</h2>
+
+<div id="login-section">
+    <p>Please sign in to access your documents.</p>
+    <button onclick="login()">Login with Google</button>
+</div>
+
+<div id="loading-section" style="display:none;">
+    <div class="loader"></div>
+    <p>Authenticating and redirecting...</p>
+</div>
+
+<script>
+const KEYCLOAK_URL = "http://localhost:9090";
+const REALM = "Myapp";
+const CLIENT_ID = "quill-client";
+const BACKEND_URL = "http://localhost:4000";
+
+window.onload = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+    if (code) {
+        document.getElementById("login-section").style.display = "none";
+        document.getElementById("loading-section").style.display = "block";
+        const codeVerifier = localStorage.getItem("code_verifier");
+        tokenExchange(code, codeVerifier);
+    }
+};
+
+function base64UrlEncode(buffer) {
+  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+async function login() {
+  const array = new Uint32Array(32);
+  window.crypto.getRandomValues(array);
+  const codeVerifier = base64UrlEncode(array);
+  localStorage.setItem("code_verifier", codeVerifier);
+
+  const encoder = new TextEncoder();
+  const data = encoder.encode(codeVerifier);
+  const hash = await window.crypto.subtle.digest("SHA-256", data);
+  const codeChallenge = base64UrlEncode(hash);
+
+  const authUrl = `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/auth` +
+    `?client_id=${CLIENT_ID}&response_type=code&scope=openid%20profile%20email` +
+    `&redirect_uri=${encodeURIComponent(window.location.origin + "/auth.html")}` +
+    `&code_challenge=${codeChallenge}&code_challenge_method=S256`;
+
+  window.location.href = authUrl;
+}
+
+async function tokenExchange(code, codeVerifier) {
+  const res = await fetch(`${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "authorization_code",
+      client_id: CLIENT_ID,
+      code: code,
+      redirect_uri: window.location.origin + "/auth.html",
+      code_verifier: codeVerifier
+    })
+  });
+
+  const data = await res.json();
+  localStorage.setItem("access_token", data.access_token);
+  fetchUserDetails(data.access_token);
+}
+
+async function fetchUserDetails(token) {
+    const res = await fetch(`${BACKEND_URL}/user/me`, {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+    
+    if (res.ok) {
+        const user = await res.json();
+        // PERSISTENCE: Save to sessionStorage so dashboard can see it
+        sessionStorage.setItem("user_name", user.user_name);
+        sessionStorage.setItem("user_email", user.user_email);
+        
+        // REDIRECT: Move to the management page
+        window.location.href = "alltrialtest.html";
+    }
+}
+</script>
+</body>
+</html>
