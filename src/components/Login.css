@@ -23,17 +23,17 @@
 
 .main-heading {
   margin: 0 0 16px 0;
-  font-size: 48px;
-  font-weight: 700;
+  font-size: 54px;
+  font-weight: 650;
   color: #ffffff;
   letter-spacing: -0.5px;
-  line-height: 1.2;
+  line-height: 1.3;
   animation: fadeInUp 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
 .subheading {
   margin: 0 0 60px 0;
-  font-size: 16px;
+  font-size: 18px;
   color: #ffffff;
   line-height: 1.6;
   max-width: 520px;
