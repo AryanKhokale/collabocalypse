@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [myDocuments, setMyDocuments] = useState([]);
   const [showMyDocuments, setShowMyDocuments] = useState(false);
   const [newDocId, setNewDocId] = useState('');
+  const [activeView, setActiveView] = useState('home');
 
   useEffect(() => {
     const email = sessionStorage.getItem('user_email');
@@ -37,9 +38,13 @@ const Dashboard = () => {
 
     setLoading(true);
     try {
+      const token = sessionStorage.getItem('access_token');
       const response = await fetch(
         `${BACKEND_URL}/create?doc_id=${encodeURIComponent(newDocId.trim())}&admin_email=${encodeURIComponent(userEmail)}`,
-        { method: 'POST' }
+        { 
+          method: 'POST',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        }
       );
 
       const result = await response.json();
@@ -159,52 +164,155 @@ const Dashboard = () => {
     navigate('/');
   };
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+
   return (
     <div className="dashboard-container">
-      <div className="dashboard-header">
-        <div className="dashboard-title">
-          <h1>Welcome, {userName}</h1>
-          <p className="user-email">{userEmail}</p>
+      {/* Sidebar */}
+      <div className="dashboard-sidebar">
+        <div className="sidebar-header">
+          <h2 className="app-name">Collabocalypse</h2>
         </div>
-        <button className="logout-button" onClick={handleLogout}>
-          Logout
-        </button>
+        
+        <nav className="sidebar-nav">
+          <button className="nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            <span>Home</span>
+          </button>
+          
+          <button className="nav-item" onClick={() => setShowCreateInput(true)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="12" y1="18" x2="12" y2="12" />
+              <line x1="9" y1="15" x2="15" y2="15" />
+            </svg>
+            <span>New Document</span>
+          </button>
+          
+          <button className="nav-item" onClick={() => setShowOpenInput(true)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            </svg>
+            <span>Open Document</span>
+          </button>
+          
+          <button className="nav-item" onClick={handleMyDocuments}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            <span>My Documents</span>
+          </button>
+        </nav>
+        
+        <div className="sidebar-footer">
+          <button className="logout-button" onClick={handleLogout}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span>Logout</span>
+          </button>
+        </div>
       </div>
 
-      <div className="dashboard-content">
-        <div className="dashboard-card">
-          <div className="card-icon create-icon">📄</div>
-          <h2>Create Document</h2>
-          <p>Start a new collaborative document</p>
-          {!showCreateInput ? (
-            <button 
-              className="card-button" 
-              onClick={() => setShowCreateInput(true)}
-              disabled={loading}
-            >
-              Create New Document
-            </button>
-          ) : (
-            <div className="input-group">
+      {/* Main Content */}
+      <div className="dashboard-main">
+        {/* Greeting Section */}
+        <div className="greeting-section">
+          <h1 className="greeting">{getGreeting()}, {userName}</h1>
+          <p className="user-email">{userEmail}</p>
+        </div>
+
+        {/* New Document Section */}
+        <section className="new-document-section">
+          <h2 className="section-title">Start a new document</h2>
+          <div className="templates-grid">
+            <div className="template-card" onClick={() => setShowCreateInput(true)}>
+              <div className="template-preview blank-doc">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="2" width="18" height="20" rx="2" ry="2" />
+                  <line x1="12" y1="8" x2="12" y2="16" />
+                  <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+              </div>
+              <p className="template-name">Blank collaborative document</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Recent Documents Section */}
+        {showMyDocuments && (
+          <section className="recent-documents-section">
+            <h2 className="section-title">Recent documents</h2>
+            {loading ? (
+              <div className="loading-state">Loading documents...</div>
+            ) : myDocuments.length === 0 ? (
+              <div className="empty-state">No documents yet</div>
+            ) : (
+              <div className="documents-table">
+                <div className="table-header">
+                  <div className="col-name">Name</div>
+                  <div className="col-modified">Last modified</div>
+                </div>
+                <div className="table-body">
+                  {myDocuments.map((doc, index) => (
+                    <div 
+                      key={index} 
+                      className="table-row"
+                      onClick={() => handleDocumentClick(doc)}
+                    >
+                      <div className="col-name">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                        <span>{doc}</span>
+                      </div>
+                      <div className="col-modified">Recently</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Modals for Create/Open */}
+        {showCreateInput && (
+          <div className="modal-overlay" onClick={() => setShowCreateInput(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h3>Create new document</h3>
               <input
                 type="text"
-                placeholder="Enter document ID"
+                placeholder="Enter document name"
                 value={newDocId}
                 onChange={(e) => setNewDocId(e.target.value)}
-                className="doc-input"
+                className="modal-input"
                 disabled={loading}
                 onKeyPress={(e) => e.key === 'Enter' && handleCreateDocument()}
+                autoFocus
               />
-              <div className="input-buttons">
+              <div className="modal-actions">
                 <button 
-                  className="card-button primary" 
+                  className="modal-button primary" 
                   onClick={handleCreateDocument}
                   disabled={loading || !newDocId.trim()}
                 >
                   {loading ? 'Creating...' : 'Create'}
                 </button>
                 <button 
-                  className="card-button secondary" 
+                  className="modal-button" 
                   onClick={() => {
                     setShowCreateInput(false);
                     setNewDocId('');
@@ -215,42 +323,33 @@ const Dashboard = () => {
                 </button>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        <div className="dashboard-card">
-          <div className="card-icon open-icon">🔓</div>
-          <h2>Open Document</h2>
-          <p>Access an existing document by ID</p>
-          {!showOpenInput ? (
-            <button 
-              className="card-button" 
-              onClick={() => setShowOpenInput(true)}
-              disabled={loading}
-            >
-              Open Document
-            </button>
-          ) : (
-            <div className="input-group">
+        {showOpenInput && (
+          <div className="modal-overlay" onClick={() => setShowOpenInput(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h3>Open document</h3>
               <input
                 type="text"
                 placeholder="Enter document ID"
                 value={docIdInput}
                 onChange={(e) => setDocIdInput(e.target.value)}
-                className="doc-input"
+                className="modal-input"
                 disabled={loading}
                 onKeyPress={(e) => e.key === 'Enter' && handleOpenDocument()}
+                autoFocus
               />
-              <div className="input-buttons">
+              <div className="modal-actions">
                 <button 
-                  className="card-button primary" 
+                  className="modal-button primary" 
                   onClick={handleOpenDocument}
                   disabled={loading || !docIdInput.trim()}
                 >
                   {loading ? 'Opening...' : 'Open'}
                 </button>
                 <button 
-                  className="card-button secondary" 
+                  className="modal-button" 
                   onClick={() => {
                     setShowOpenInput(false);
                     setDocIdInput('');
@@ -261,48 +360,8 @@ const Dashboard = () => {
                 </button>
               </div>
             </div>
-          )}
-        </div>
-
-        <div className="dashboard-card">
-          <div className="card-icon mydocs-icon">📚</div>
-          <h2>My Documents</h2>
-          <p>View all your documents</p>
-          <button 
-            className="card-button" 
-            onClick={handleMyDocuments}
-            disabled={loading}
-          >
-            {loading ? 'Loading...' : 'View My Documents'}
-          </button>
-          
-          {showMyDocuments && (
-            <div className="documents-list">
-              {myDocuments.length === 0 ? (
-                <p className="no-documents">No documents found</p>
-              ) : (
-                <ul>
-                  {myDocuments.map((doc, index) => (
-                    <li 
-                      key={index} 
-                      className="document-item"
-                      onClick={() => handleDocumentClick(doc)}
-                    >
-                      <span className="doc-id">{doc}</span>
-                      <span className="doc-arrow">→</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <button 
-                className="close-list-button" 
-                onClick={() => setShowMyDocuments(false)}
-              >
-                Close
-              </button>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
