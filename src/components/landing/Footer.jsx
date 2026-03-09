@@ -7,7 +7,21 @@ const Footer = () => (
       <div className="ft-top">
         {/* Brand */}
         <div className="ft-brand">
-          <span className="ft-logo">Collabocalypse</span>
+          <div className="ft-logo-section">
+            <svg className="ft-logo-icon" width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Document outline */}
+              <rect x="6" y="4" width="20" height="24" rx="2" fill="none" stroke="#ffffff" strokeWidth="1.8"/>
+              {/* Text lines */}
+              <line x1="10" y1="10" x2="18" y2="10" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/>
+              <line x1="10" y1="14" x2="22" y2="14" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/>
+              <line x1="10" y1="18" x2="16" y2="18" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/>
+              {/* Cursor 1 */}
+              <path d="M19 9l0 6 2 -2 1.5 3 1.5 -0.5 -1.5 -3 2.5 0z" fill="#ffffff" stroke="#ffffff" strokeWidth="0.5" opacity="0.9"/>
+              {/* Cursor 2 */}
+              <path d="M13 21l0 5 1.5 -1.5 1 2.5 1.2 -0.5 -1 -2.5 2 0z" fill="#ffffff" stroke="#ffffff" strokeWidth="0.5" opacity="0.9"/>
+            </svg>
+            <span className="ft-logo">Collabocalypse</span>
+          </div>
           <p className="ft-brand-desc">
             Real-time collaborative documents for teams of any size — decentralised, conflict-free, and enterprise-ready.
           </p>
@@ -38,8 +52,7 @@ const Footer = () => (
           <ul className="ft-links">
             <li><a href="#about" className="ft-link">About</a></li>
             <li><a href="#features" className="ft-link">Features</a></li>
-            <li><a href="#" className="ft-link">Help Center</a></li>
-            <li><a href="#" className="ft-link">Careers</a></li>
+            <li><a href="#contact" className="ft-link">Contact</a></li>
           </ul>
         </div>
       </div>

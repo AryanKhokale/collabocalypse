@@ -117,6 +117,18 @@ const Login = () => {
         <header className="login-header-top">
           <div className="navbar-container">
             <div className="navbar-left">
+              <svg className="app-logo" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Document outline */}
+                <rect x="6" y="4" width="20" height="24" rx="2" fill="none" stroke="#9f7aea" strokeWidth="1.8"/>
+                {/* Text lines */}
+                <line x1="10" y1="10" x2="18" y2="10" stroke="#a855f7" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="10" y1="14" x2="22" y2="14" stroke="#7dd3fc" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="10" y1="18" x2="16" y2="18" stroke="#a855f7" strokeWidth="1.5" strokeLinecap="round"/>
+                {/* Cursor 1 - purple */}
+                <path d="M19 9l0 6 2 -2 1.5 3 1.5 -0.5 -1.5 -3 2.5 0z" fill="#a855f7" stroke="#a855f7" strokeWidth="0.5"/>
+                {/* Cursor 2 - cyan */}
+                <path d="M13 21l0 5 1.5 -1.5 1 2.5 1.2 -0.5 -1 -2.5 2 0z" fill="#7dd3fc" stroke="#7dd3fc" strokeWidth="0.5"/>
+              </svg>
               <h1 className="app-title">Collabocalypse</h1>
             </div>
             <nav className="navbar-center">

@@ -4,6 +4,11 @@
   overflow: hidden;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   text-align: center;
+  background: linear-gradient(180deg, 
+    rgba(10, 8, 20, 1) 0%, 
+    rgba(18, 12, 35, 1) 50%,
+    rgba(12, 8, 25, 1) 100%
+  );
 }
 
 /* Ambient glows */
@@ -23,14 +28,14 @@
 }
 
 .cs-glow-left {
-  background: radial-gradient(circle, rgba(147, 51, 234, 0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.35) 0%, rgba(126, 34, 206, 0.22) 40%, transparent 70%);
   top: -100px;
   left: -150px;
   animation: glowFloat 8s ease-in-out infinite;
 }
 
 .cs-glow-right {
-  background: radial-gradient(circle, rgba(99, 32, 200, 0.14) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.28) 0%, rgba(99, 32, 200, 0.18) 40%, transparent 70%);
   bottom: -100px;
   right: -150px;
   animation: glowFloat 10s ease-in-out infinite reverse;
@@ -63,8 +68,8 @@
   width: var(--size);
   height: var(--size);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(224, 176, 255, 0.95) 0%, rgba(168, 85, 247, 0.55) 45%, rgba(147, 51, 234, 0) 100%);
-  box-shadow: 0 0 8px rgba(192, 132, 252, 0.7), 0 0 20px rgba(147, 51, 234, 0.45);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 45%, rgba(255, 255, 255, 0) 100%);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.7), 0 0 20px rgba(255, 255, 255, 0.45);
   opacity: 0;
   animation: csParticleTwinkle var(--duration) ease-in-out var(--delay) infinite;
 }
@@ -159,20 +164,28 @@
   align-items: center;
   gap: 10px;
   padding: 15px 36px;
-  background: linear-gradient(180deg, #c084fc 0%, #9333ea 70%, #7e22ce 100%);
+  background: rgba(10, 10, 15, 0.6);
   color: #fff;
-  border: none;
+  border: 2px solid #9f7aea;
   border-radius: 10px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   letter-spacing: 0.01em;
-  box-shadow: 0 8px 28px rgba(147, 51, 234, 0.45);
+  box-shadow: 
+    0 0 20px rgba(159, 122, 234, 0.55),
+    0 0 40px rgba(159, 122, 234, 0.28),
+    inset 0 0 20px rgba(159, 122, 234, 0.09);
   transition: all 0.25s ease;
 }
 
 .cs-btn-primary:hover {
-  box-shadow: 0 12px 40px rgba(147, 51, 234, 0.65);
+  background: rgba(159, 122, 234, 0.13);
+  border-color: #b794f4;
+  box-shadow: 
+    0 0 30px rgba(183, 148, 244, 0.75),
+    0 0 60px rgba(183, 148, 244, 0.45),
+    inset 0 0 25px rgba(183, 148, 244, 0.17);
   transform: translateY(-2px);
 }
 

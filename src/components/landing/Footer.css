@@ -15,7 +15,7 @@
   justify-content: space-between;
   gap: 60px;
   margin-bottom: 64px;
-  align-items: start;
+  align-items: end;
 }
 
 /* Brand */
@@ -25,13 +25,22 @@
   gap: 16px;
 }
 
+.ft-logo-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ft-logo-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
 .ft-logo {
   font-size: 22px;
   font-weight: 700;
-  background: linear-gradient(135deg, #e0b0ff 0%, #c084fc 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
   letter-spacing: 0.3px;
 }
 
