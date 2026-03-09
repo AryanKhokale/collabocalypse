@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import './Login.css';
 import { KEYCLOAK_CONFIG, API_BASE_URL } from '../config';
+import LogoBanner from './landing/LogoBanner';
+import FeaturesSection from './landing/Features';
+import CTASection from './landing/CTASection';
+import Footer from './landing/Footer';
 
 // Pull Keycloak + API settings from shared config/env
 const KEYCLOAK_URL = KEYCLOAK_CONFIG.url;
@@ -108,51 +112,58 @@ const Login = () => {
     }
   };
 
-  return (
-    <>
-      <header className="login-header-top">
-        <div className="navbar-container">
-          <div className="navbar-left">
-            <h1 className="app-title">Collabocalypse</h1>
+    return (
+      <div className="landing-root">
+        <header className="login-header-top">
+          <div className="navbar-container">
+            <div className="navbar-left">
+              <h1 className="app-title">Collabocalypse</h1>
+            </div>
+            <nav className="navbar-center">
+              <a href="#features" className="nav-link">Features</a>
+              <a href="#docs" className="nav-link">Docs</a>
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="nav-link">GitHub</a>
+            </nav>
+            <div className="navbar-right">
+              <button className="nav-cta" onClick={login}>Sign In</button>
+            </div>
           </div>
-          <nav className="navbar-center">
-            <a href="#features" className="nav-link">Features</a>
-            <a href="#docs" className="nav-link">Docs</a>
-            <a href="#pricing" className="nav-link">Pricing</a>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="nav-link">GitHub</a>
-          </nav>
-          <div className="navbar-right">
-            <button className="nav-cta" onClick={login}>Sign In</button>
+        </header>
+        <div className="login-container">
+          <div className="login-content">
+            <h2 className="main-heading">Collaborative Editing at Scale</h2>
+            <p className="subheading">Real-time document collaboration with enterprise-grade reliability and decentralized infrastructure</p>
+            
+            {isLoading ? (
+              <div className="loading-section">
+                <div className="loader"></div>
+                <p>Authenticating and redirecting...</p>
+              </div>
+            ) : (
+              <div className="cta-wrapper">
+                <div className="glow-ring ring-1"></div>
+                <div className="glow-ring ring-2"></div>
+                <div className="glow-ring ring-3"></div>
+                <button className="primary-cta" onClick={login}>
+                  Get Started
+                  <svg className="cta-arrow" viewBox="0 0 16 16" fill="none">
+                    <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      </header>
-      <div className="login-container">
-        <div className="login-content">
-          <h2 className="main-heading">Collaborative Editing at Scale</h2>
-          <p className="subheading">Real-time document collaboration with enterprise-grade reliability and decentralized infrastructure</p>
-          
-          {isLoading ? (
-            <div className="loading-section">
-              <div className="loader"></div>
-              <p>Authenticating and redirecting...</p>
-            </div>
-          ) : (
-            <div className="cta-wrapper">
-              <div className="glow-ring ring-1"></div>
-              <div className="glow-ring ring-2"></div>
-              <div className="glow-ring ring-3"></div>
-              <button className="primary-cta" onClick={login}>
-                Get Started
-                <svg className="cta-arrow" viewBox="0 0 16 16" fill="none">
-                  <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            </div>
-          )}
+
+        {/* ── Sections below the hero ── */}
+        <div className="landing-sections">
+          <FeaturesSection />
+          <CTASection />
+          <LogoBanner />
+          <Footer />
         </div>
       </div>
-    </>
-  );
+    );
 };
 
 export default Login;

@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-KEYCLOAK_URL = "http://localhost:9090"
+KEYCLOAK_URL = "http://localhost:9000"
 REALM = "Myapp"
 CLIENT_ID = "quill-client"
 

@@ -69,7 +69,7 @@ const App = () => {
 
   const handleSave = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/save/${docId}?client_version=${currentVersion}`, {
+      const response = await fetch(`http://127.0.0.1:8000/save/${docId}?client_version=${currentVersion}&user_email=${encodeURIComponent(userEmail)}`, {
         method: 'POST',
       });
       const result = await response.json();
@@ -154,16 +154,45 @@ const App = () => {
         
         <div className="status-right">
           <button className="action-button save-button" onClick={handleSave}>
-            💾 Save
+            <span className="action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 4h11l3 3v13H5V4z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M8 4v6h8V4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M8.5 20v-5h7v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+            Save
           </button>
           <button className="action-button share-button" onClick={() => setShowShareInput(!showShareInput)}>
-            👥 Share
+            <span className="action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16.5 20a3.5 3.5 0 0 0-7 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                <circle cx="13" cy="10" r="3" stroke="currentColor" strokeWidth="1.8"/>
+                <path d="M4 20a3.2 3.2 0 0 1 4.8-2.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                <circle cx="7.5" cy="11" r="2.5" stroke="currentColor" strokeWidth="1.8"/>
+              </svg>
+            </span>
+            Share
           </button>
           <button className="action-button delete-button" onClick={handleDelete}>
-            🗑️ Delete
+            <span className="action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 7h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                <path d="M9 7V5h6v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M7 7l1 12h8l1-12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+            </span>
+            Delete
           </button>
           <button className="action-button dashboard-button" onClick={() => navigate('/dashboard')}>
-            ← Dashboard
+            <span className="action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                <path d="M10 8l-4 4 4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+            Dashboard
           </button>
         </div>
       </div>
