@@ -184,12 +184,11 @@ const FeaturesSection = () => {
 
   return (
     <section className="bf-section" id="features">
+      <div className="bf-bg-layer bf-bg-grid" aria-hidden="true" />
+      <div className="bf-bg-layer bf-bg-orb bf-bg-orb-a" aria-hidden="true" />
+      <div className="bf-bg-layer bf-bg-orb bf-bg-orb-b" aria-hidden="true" />
       <div className="bf-inner">
         <div className="bf-header">
-          <div className="bf-pill">
-            <span className="bf-pill-dot" />
-            Features
-          </div>
           <h2 className="bf-title">
             Meet the new-gen<br />collaboration experience
           </h2>
@@ -205,6 +204,7 @@ const FeaturesSection = () => {
               className={`bf-card bf-card-${card.size} bf-delay-${i}`}
               ref={(el) => (refs.current[i] = el)}
             >
+              <div className="bf-card-glow" aria-hidden="true" />
               <div className="bf-card-preview">
                 {card.preview}
               </div>
@@ -217,6 +217,8 @@ const FeaturesSection = () => {
           ))}
         </div>
       </div>
+      <div className="bf-bg-layer bf-bg-orb bf-bg-orb-c" aria-hidden="true" />
+      <div className="bf-bg-layer bf-bg-orb bf-bg-orb-d" aria-hidden="true" />
     </section>
   );
 };
