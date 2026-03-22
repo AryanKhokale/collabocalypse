@@ -338,7 +338,6 @@ const Dashboard = () => {
         const savedPosition = sessionStorage.getItem('dashboardScrollPosition');
         if (contentPanelRef.current && savedPosition) {
           const scrollValue = parseInt(savedPosition, 10);
-          console.log('[useEffect-view] Restoring to:', scrollValue);
           contentPanelRef.current.scrollTop = scrollValue;
           sessionStorage.removeItem('dashboardScrollPosition');
         }
@@ -346,13 +345,21 @@ const Dashboard = () => {
     }
   }, [showMyDocuments, activeView]);
 
-  // Also restore when visibleDocuments changes (ensures scroll is restored after data loads)
+  // Restore active view when returning to dashboard
+  useEffect(() => {
+    const savedView = sessionStorage.getItem('dashboardActiveView');
+    if (savedView && savedView !== activeView) {
+      setActiveView(savedView);
+      sessionStorage.removeItem('dashboardActiveView');
+    }
+  }, [showMyDocuments]);
+
+  // Also restore scroll position when visibleDocuments changes (ensures scroll is restored after data loads)
   useEffect(() => {
     const savedPosition = sessionStorage.getItem('dashboardScrollPosition');
     if (savedPosition && contentPanelRef.current && showMyDocuments) {
       setTimeout(() => {
         const scrollValue = parseInt(savedPosition, 10);
-        console.log('[useEffect-visible] Restoring to:', scrollValue);
         contentPanelRef.current.scrollTop = scrollValue;
         sessionStorage.removeItem('dashboardScrollPosition');
       }, 50);
@@ -550,11 +557,10 @@ const Dashboard = () => {
   };
 
   const handleDocumentClick = async (docId) => {
-    // Save scroll position to sessionStorage before navigating
+    // Save current view and scroll position before navigating
+    sessionStorage.setItem('dashboardActiveView', activeView);
     if (contentPanelRef.current) {
-      const scrollPos = contentPanelRef.current.scrollTop;
-      console.log('[handleDocumentClick] dashboard-main scrollTop:', scrollPos);
-      sessionStorage.setItem('dashboardScrollPosition', scrollPos);
+      sessionStorage.setItem('dashboardScrollPosition', contentPanelRef.current.scrollTop);
     }
     
     setLoading(true);
