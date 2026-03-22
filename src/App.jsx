@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill';
+import { CTA_PARTICLES } from './components/landing/CTASection.jsx';
 import 'react-quill/dist/quill.snow.css';
 import './App.css';
 
@@ -14,6 +15,39 @@ const App = () => {
   const [currentVersion, setCurrentVersion] = useState(0); 
   const [showShareInput, setShowShareInput] = useState(false); // Controls the email input box
   const [emailInput, setEmailInput] = useState(""); // Stores comma-separated emails
+
+  const editorParticles = useMemo(() => {
+    // Reuse landing particle style, but create many more layers for a dense editor background.
+    const layerConfigs = [
+      { xShift: 0.85, yShift: 1.05, delayShift: 0.18, durationShift: 0.22 },
+      { xShift: -1.1, yShift: 0.9, delayShift: 0.34, durationShift: -0.18 },
+      { xShift: 1.35, yShift: -1.2, delayShift: 0.52, durationShift: 0.28 },
+      { xShift: -0.75, yShift: -1.35, delayShift: 0.71, durationShift: -0.24 },
+      { xShift: 1.65, yShift: 1.45, delayShift: 0.93, durationShift: 0.35 },
+    ];
+
+    const expandedLayers = layerConfigs.flatMap((config, layerIndex) =>
+      CTA_PARTICLES.map((particle, index) => {
+        const x = (parseFloat(particle.x) + ((index % 11) - 5) * config.xShift + layerIndex * 0.37 + 200) % 100;
+        const y = (parseFloat(particle.y) + ((index % 9) - 4) * config.yShift + layerIndex * 0.29 + 200) % 100;
+        const delay = parseFloat(particle.delay) + (index % 8) * config.delayShift + layerIndex * 0.21;
+        const duration = Math.max(
+          4.2,
+          parseFloat(particle.duration) + ((index % 7) - 3) * config.durationShift + layerIndex * 0.12
+        );
+
+        return {
+          x: `${x.toFixed(2)}%`,
+          y: `${y.toFixed(2)}%`,
+          size: (index + layerIndex) % 5 === 0 ? '2px' : particle.size,
+          delay: `${delay.toFixed(2)}s`,
+          duration: `${duration.toFixed(2)}s`,
+        };
+      })
+    );
+
+    return [...CTA_PARTICLES, ...expandedLayers];
+  }, []);
   
   const userEmail = sessionStorage.getItem('user_email') || '';
 
@@ -142,6 +176,22 @@ const App = () => {
 
   return (
     <div className="full-screen-wrapper">
+      <div className="editor-particles" aria-hidden="true">
+        {editorParticles.map((particle, index) => (
+          <span
+            className="editor-particle"
+            key={`editor-p-${index}`}
+            style={{
+              '--x': particle.x,
+              '--y': particle.y,
+              '--size': particle.size,
+              '--delay': particle.delay,
+              '--duration': particle.duration,
+            }}
+          />
+        ))}
+      </div>
+
       <div className="status-bar">
         <div className="status-left">
           <span className={`status-indicator ${status.toLowerCase()}`}></span>

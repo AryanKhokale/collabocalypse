@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
@@ -12,6 +12,141 @@ const DEFAULT_TEMPLATE_NAMES = [
   'Business Letter'
 ];
 
+const LETTER_TEMPLATE_PREVIEW_TEXT = `Your Name
+123 Your Street
+Your City, ST 12345
+(123) 456-7890
+no_reply@example.com
+
+4th September 20XX
+Ronny Reader
+CEO, Company Name
+123 Address St
+Anytown, ST 12345
+
+Dear Ms. Reader,
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt.
+Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl.
+
+Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat.
+Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim.
+
+Sincerely,
+Your Name`;
+
+const PROJECT_PROPOSAL_PREVIEW_TEXT = `Project Name
+09.04.20XX
+
+Your Name
+Your Company
+123 Your Street
+Your City, ST 12345
+
+Overview
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+
+Goals
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+
+Specifications
+Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum.
+
+Milestones
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit.`;
+
+const MEETING_NOTES_PREVIEW_TEXT = `Annual Board Meeting / TEAM Meeting
+Friday, 09.04.20XX
+
+Attendees
+Wendy Writer, CEO
+Ronny Reader, CFO
+Abby Author, CTO
+
+Agenda
+Last Meeting Follow-up
+New Business
+
+Notes
+Lorem ipsum dolor sit amet consectetuer adipiscing elit.
+
+Action Items
+Lorem ipsum dolor sit amet consectetuer adipiscing elit.
+
+Next Meeting Agenda Items
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit.`;
+
+const RESUME_PREVIEW_TEXT = `Hello
+I\'m Your Name
+123 YOUR STREET
+YOUR CITY, ST 12345
+(123) 456-7890
+NO_REPLY@EXAMPLE.COM
+
+Skills
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ac interdum nisi.
+
+Experience
+MONTH 20XX - PRESENT
+Company Name, Location - Job Title
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+Education
+MONTH 20XX - MONTH 20XX
+College Name, Location - Degree
+
+Awards
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.`;
+
+const PREVIEW_HEADINGS = {
+  letter: new Set(['Dear Ms. Reader,', 'Sincerely,']),
+  proposal: new Set(['Overview', 'Goals', 'Specifications', 'Lorem Ipsum', 'Milestones']),
+  meeting: new Set(['Attendees', 'Agenda', 'Notes', 'Action Items', 'Next Meeting Agenda Items']),
+  resume: new Set(['Skills', 'Experience', 'Education', 'Awards'])
+};
+
+const DOCUMENT_FOLDERS = ['Workspace', 'Product', 'Marketing', 'Research', 'Archive'];
+
+const COLLABORATOR_POOL = [
+  { initials: 'AM', name: 'Ava Morgan' },
+  { initials: 'JR', name: 'Jared Ross' },
+  { initials: 'NL', name: 'Noah Lee' },
+  { initials: 'SK', name: 'Sana Khan' },
+  { initials: 'TP', name: 'Theo Patel' },
+  { initials: 'DM', name: 'Dina Moss' }
+];
+
+const hashString = (value) => {
+  return value.split('').reduce((acc, char, index) => {
+    return acc + char.charCodeAt(0) * (index + 1);
+  }, 0);
+};
+
+const getRelativeTime = (date) => {
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.max(1, Math.floor(diffMs / (1000 * 60)));
+
+  if (diffMinutes < 60) {
+    return `edited ${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) {
+    return `edited ${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+  return `edited ${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+};
+
+const formatLastOpened = (date) => {
+  return date.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState('');
@@ -23,10 +158,71 @@ const Dashboard = () => {
   const [myDocuments, setMyDocuments] = useState([]);
   const [showMyDocuments, setShowMyDocuments] = useState(false);
   const [documentsMode, setDocumentsMode] = useState('recent');
+  const [documentsQuery, setDocumentsQuery] = useState('');
+  const [documentsSort, setDocumentsSort] = useState('recent');
+  const [pinnedDocuments, setPinnedDocuments] = useState([]);
+  const [selectedFolder, setSelectedFolder] = useState('All Documents');
+  const [collapsedFolders, setCollapsedFolders] = useState([]);
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [selectedTemplateType, setSelectedTemplateType] = useState('');
   const [templateNames, setTemplateNames] = useState(DEFAULT_TEMPLATE_NAMES);
   const [newDocId, setNewDocId] = useState('');
   const [activeView, setActiveView] = useState('home');
+
+  const documentRecords = useMemo(() => {
+    return myDocuments.map((docName, index) => {
+      const score = hashString(docName);
+      const folder = DOCUMENT_FOLDERS[score % DOCUMENT_FOLDERS.length];
+      const lastOpenedAt = new Date(Date.now() - (score % 1440) * 60 * 1000);
+      const activityAt = new Date(Date.now() - ((score % 300) + 15) * 60 * 1000);
+      const collaboratorCount = (score % 3) + 2;
+      const collaborators = Array.from({ length: collaboratorCount }, (_, collaboratorIndex) => {
+        return COLLABORATOR_POOL[(score + collaboratorIndex) % COLLABORATOR_POOL.length];
+      });
+
+      return {
+        id: docName,
+        name: docName,
+        folder,
+        lastOpenedAt,
+        activityAt,
+        activityLabel: getRelativeTime(activityAt),
+        collaborators,
+        activeEditors: (score + index) % 2 === 0 ? 1 : 0
+      };
+    });
+  }, [myDocuments]);
+
+  const folderStats = useMemo(() => {
+    return DOCUMENT_FOLDERS.map((folderName) => ({
+      folderName,
+      count: documentRecords.filter((doc) => doc.folder === folderName).length
+    }));
+  }, [documentRecords]);
+
+  const visibleDocuments = useMemo(() => {
+    const filtered = documentRecords.filter((doc) => {
+      const matchesQuery = doc.name.toLowerCase().includes(documentsQuery.toLowerCase());
+      const matchesFolder = selectedFolder === 'All Documents' || doc.folder === selectedFolder;
+      return matchesQuery && matchesFolder;
+    });
+
+    if (documentsSort === 'az') {
+      return filtered.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return filtered.sort((a, b) => b.lastOpenedAt.getTime() - a.lastOpenedAt.getTime());
+  }, [documentRecords, documentsQuery, documentsSort, selectedFolder]);
+
+  const pinnedDocumentRecords = useMemo(() => {
+    return visibleDocuments.filter((doc) => pinnedDocuments.includes(doc.id));
+  }, [visibleDocuments, pinnedDocuments]);
+
+  const suggestedDocuments = useMemo(() => {
+    return visibleDocuments
+      .filter((doc) => !recentlyViewed.includes(doc.id))
+      .slice(0, 4);
+  }, [visibleDocuments, recentlyViewed]);
 
   useEffect(() => {
     const email = sessionStorage.getItem('user_email');
@@ -120,14 +316,13 @@ const Dashboard = () => {
       );
 
       if (response.status === 403) {
-        const result = await response.json();
-        alert(result.detail || 'You do not have access to this document');
+        alert('You may have been removed from this document by the admin, or the admin may have deleted this document.');
         setLoading(false);
         return;
       }
 
       if (response.status === 404) {
-        alert('Document not found');
+        alert('You may have been removed from this document by the admin, or the admin may have deleted this document.');
         setLoading(false);
         return;
       }
@@ -201,20 +396,23 @@ const Dashboard = () => {
       );
 
       if (response.status === 403) {
-        const result = await response.json();
-        alert(result.detail || 'You do not have access to this document');
+        alert('You may have been removed from this document by the admin, or the admin may have deleted this document.');
         setLoading(false);
         return;
       }
 
       if (response.status === 404) {
-        alert('Document not found');
+        alert('You may have been removed from this document by the admin, or the admin may have deleted this document.');
         setLoading(false);
         return;
       }
 
       const result = await response.json();
       if (result.status === 'success') {
+        setRecentlyViewed((current) => {
+          const next = [docId, ...current.filter((item) => item !== docId)];
+          return next.slice(0, 6);
+        });
         navigate(`/editor/${docId}`);
       } else {
         alert(result.message || 'Failed to open document');
@@ -225,6 +423,66 @@ const Dashboard = () => {
       alert('Error opening document. Please try again.');
       setLoading(false);
     }
+  };
+
+  const handleTogglePin = (event, docId) => {
+    event.stopPropagation();
+    setPinnedDocuments((current) => {
+      if (current.includes(docId)) {
+        return current.filter((id) => id !== docId);
+      }
+      return [...current, docId];
+    });
+  };
+
+  const handleQuickRename = (event, docId) => {
+    event.stopPropagation();
+    const renamedDoc = window.prompt('Rename document', docId);
+    if (!renamedDoc || !renamedDoc.trim() || renamedDoc.trim() === docId) {
+      return;
+    }
+
+    setMyDocuments((current) =>
+      current.map((doc) => (doc === docId ? renamedDoc.trim() : doc))
+    );
+    setPinnedDocuments((current) =>
+      current.map((doc) => (doc === docId ? renamedDoc.trim() : doc))
+    );
+    setRecentlyViewed((current) =>
+      current.map((doc) => (doc === docId ? renamedDoc.trim() : doc))
+    );
+  };
+
+  const handleQuickDelete = (event, docId) => {
+    event.stopPropagation();
+    const shouldDelete = window.confirm(`Delete ${docId}?`);
+    if (!shouldDelete) {
+      return;
+    }
+
+    setMyDocuments((current) => current.filter((doc) => doc !== docId));
+    setPinnedDocuments((current) => current.filter((doc) => doc !== docId));
+    setRecentlyViewed((current) => current.filter((doc) => doc !== docId));
+  };
+
+  const handleQuickShare = async (event, docId) => {
+    event.stopPropagation();
+    const shareUrl = `${window.location.origin}/editor/${encodeURIComponent(docId)}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert('Share link copied to clipboard.');
+    } catch {
+      alert(`Share link: ${shareUrl}`);
+    }
+  };
+
+  const toggleFolderCollapse = (folderName) => {
+    setCollapsedFolders((current) => {
+      if (current.includes(folderName)) {
+        return current.filter((name) => name !== folderName);
+      }
+      return [...current, folderName];
+    });
   };
 
   const handleLogout = () => {
@@ -238,6 +496,83 @@ const Dashboard = () => {
     if (hour < 12) return 'Good morning';
     if (hour < 18) return 'Good afternoon';
     return 'Good evening';
+  };
+
+  const getTemplateVariant = (templateName) => {
+    const normalized = templateName.toLowerCase();
+
+    if (normalized.includes('resume')) {
+      return 'resume';
+    }
+
+    if (normalized.includes('proposal') || normalized.includes('business')) {
+      return 'proposal';
+    }
+
+    if (normalized.includes('meeting')) {
+      return 'meeting';
+    }
+
+    return 'letter';
+  };
+
+  const renderTemplatePreview = (templateName) => {
+    const variant = getTemplateVariant(templateName);
+
+    if (variant === 'resume') {
+      return (
+        <div className="template-mini-doc resume-doc" aria-hidden="true">
+          <div className="mini-rich-text mini-rich-text-resume">{renderPreviewLines(RESUME_PREVIEW_TEXT, 'resume')}</div>
+        </div>
+      );
+    }
+
+    if (variant === 'meeting') {
+      return (
+        <div className="template-mini-doc meeting-doc" aria-hidden="true">
+          <div className="mini-rich-text mini-rich-text-meeting">{renderPreviewLines(MEETING_NOTES_PREVIEW_TEXT, 'meeting')}</div>
+        </div>
+      );
+    }
+
+    if (variant === 'proposal') {
+      return (
+        <div className="template-mini-doc proposal-doc" aria-hidden="true">
+          <div className="mini-rich-text mini-rich-text-proposal">{renderPreviewLines(PROJECT_PROPOSAL_PREVIEW_TEXT, 'proposal')}</div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="template-mini-doc letter-doc" aria-hidden="true">
+        <div className="mini-rich-text mini-rich-text-letter">{renderPreviewLines(LETTER_TEMPLATE_PREVIEW_TEXT, 'letter')}</div>
+      </div>
+    );
+  };
+
+  const renderPreviewLines = (text, type) => {
+    const headingSet = PREVIEW_HEADINGS[type] || new Set();
+
+    return text.split('\n').map((rawLine, index) => {
+      const line = rawLine.trim();
+      let className = 'mini-text-line';
+
+      if (!line) {
+        className += ' blank';
+      } else if (line === '-') {
+        className += ' divider';
+      } else if (headingSet.has(line)) {
+        className += ' heading';
+      } else if (line.includes('20XX') || line.includes('@') || line.includes('(123)')) {
+        className += ' meta';
+      }
+
+      return (
+        <div key={`${type}-${index}`} className={className}>
+          {line || '\u00A0'}
+        </div>
+      );
+    });
   };
 
   return (
@@ -261,16 +596,6 @@ const Dashboard = () => {
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
             <span>Home</span>
-          </button>
-          
-          <button className={`nav-item ${activeView === 'create' ? 'active' : ''}`} onClick={() => { setActiveView('create'); setShowCreateInput(true); }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="12" y1="18" x2="12" y2="12" />
-              <line x1="9" y1="15" x2="15" y2="15" />
-            </svg>
-            <span>New Document</span>
           </button>
           
           <button className={`nav-item ${activeView === 'open' ? 'active' : ''}`} onClick={() => { setActiveView('open'); setShowOpenInput(true); }}>
@@ -320,7 +645,7 @@ const Dashboard = () => {
           <>
             <section className="new-document-section">
               <h2 className="section-title">Start a new document</h2>
-              <div className="templates-grid">
+              <div className="templates-grid single-template-grid">
                 <div
                   className="template-card"
                   onClick={() => {
@@ -352,12 +677,8 @@ const Dashboard = () => {
                       setShowCreateInput(true);
                     }}
                   >
-                    <div className="template-preview blank-doc">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="2" width="18" height="20" rx="2" ry="2" />
-                        <line x1="12" y1="8" x2="12" y2="16" />
-                        <line x1="8" y1="12" x2="16" y2="12" />
-                      </svg>
+                    <div className="template-preview with-content">
+                      {renderTemplatePreview(templateName)}
                     </div>
                     <p className="template-name">{templateName}</p>
                   </div>
@@ -367,40 +688,229 @@ const Dashboard = () => {
           </>
         )}
 
-        {/* Recent Documents Section */}
+        {/* My Documents Workspace */}
         {showMyDocuments && (activeView === 'home' || activeView === 'documents') && (
-          <section className="recent-documents-section">
-            <h2 className="section-title">{documentsMode === 'all' ? 'My documents' : 'Recent documents'}</h2>
-            {loading ? (
-              <div className="loading-state">Loading documents...</div>
-            ) : myDocuments.length === 0 ? (
-              <div className="empty-state">No documents yet</div>
-            ) : (
-              <div className="documents-table">
-                <div className="table-header">
-                  <div className="col-name">Name</div>
-                  <div className="col-modified">Last modified</div>
-                </div>
-                <div className="table-body">
-                  {myDocuments.map((doc, index) => (
-                    <div 
-                      key={index} 
-                      className="table-row"
-                      onClick={() => handleDocumentClick(doc)}
-                    >
-                      <div className="col-name">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                          <polyline points="14 2 14 8 20 8" />
-                        </svg>
-                        <span>{doc}</span>
-                      </div>
-                      <div className="col-modified">{documentsMode === 'all' ? '-' : 'Recently'}</div>
-                    </div>
-                  ))}
-                </div>
+          <section className="documents-workspace-section">
+            <div className="documents-toolbar">
+              <div>
+                <h2 className="section-title documents-section-title">
+                  {documentsMode === 'all' ? 'My documents' : 'Recent documents'}
+                </h2>
+                <p className="documents-subtitle">Search, sort, pin, and jump between folders instantly.</p>
               </div>
-            )}
+              <button
+                className="new-document-cta"
+                onClick={() => {
+                  setSelectedTemplateType('');
+                  setShowCreateInput(true);
+                }}
+              >
+                New Document
+                <svg className="new-document-cta-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="documents-controls-row">
+              <div className="documents-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="text"
+                  value={documentsQuery}
+                  onChange={(event) => setDocumentsQuery(event.target.value)}
+                  placeholder="Search documents"
+                />
+              </div>
+
+              <label className="documents-sort">
+                <span>Sort</span>
+                <select
+                  value={documentsSort}
+                  onChange={(event) => setDocumentsSort(event.target.value)}
+                >
+                  <option value="recent">Recent</option>
+                  <option value="az">A-Z</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="documents-workspace-layout">
+              <aside className="documents-folder-sidebar">
+                <button
+                  className={`folder-item ${selectedFolder === 'All Documents' ? 'active' : ''}`}
+                  onClick={() => setSelectedFolder('All Documents')}
+                >
+                  <span>All Documents</span>
+                  <span className="folder-count">{documentRecords.length}</span>
+                </button>
+
+                {folderStats.map((folder) => (
+                  <div key={folder.folderName} className="folder-group">
+                    <button
+                      className={`folder-item ${selectedFolder === folder.folderName ? 'active' : ''}`}
+                      onClick={() => setSelectedFolder(folder.folderName)}
+                    >
+                      <span>{folder.folderName}</span>
+                      <span className="folder-meta">
+                        <span className="folder-count">{folder.count}</span>
+                        <span
+                          className={`folder-collapse-toggle ${collapsedFolders.includes(folder.folderName) ? 'collapsed' : ''}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleFolderCollapse(folder.folderName);
+                          }}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
+                              toggleFolderCollapse(folder.folderName);
+                            }
+                          }}
+                        >
+                          ▾
+                        </span>
+                      </span>
+                    </button>
+                    {!collapsedFolders.includes(folder.folderName) && (
+                      <div className="folder-preview">{folder.count > 0 ? 'Contains active files' : 'No files yet'}</div>
+                    )}
+                  </div>
+                ))}
+              </aside>
+
+              <div className="documents-content-panel">
+                <div className="documents-breadcrumb">
+                  <span>Workspace</span>
+                  <span>/</span>
+                  <span>{selectedFolder}</span>
+                </div>
+
+                {loading ? (
+                  <div className="loading-state">Loading documents...</div>
+                ) : visibleDocuments.length === 0 ? (
+                  <div className="empty-state">No documents match this view</div>
+                ) : (
+                  <>
+                    {pinnedDocumentRecords.length > 0 && (
+                      <div className="pinned-documents-card">
+                        <h3>Pinned Documents</h3>
+                        <div className="pinned-documents-list">
+                          {pinnedDocumentRecords.map((doc) => (
+                            <button
+                              key={doc.id}
+                              className="pinned-chip"
+                              onClick={() => handleDocumentClick(doc.id)}
+                            >
+                              <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                              </svg>
+                              {doc.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="documents-list-card">
+                      {visibleDocuments.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="document-row"
+                          onClick={() => handleDocumentClick(doc.id)}
+                        >
+                          <button
+                            className={`pin-toggle ${pinnedDocuments.includes(doc.id) ? 'is-pinned' : ''}`}
+                            onClick={(event) => handleTogglePin(event, doc.id)}
+                            aria-label={pinnedDocuments.includes(doc.id) ? 'Unpin document' : 'Pin document'}
+                          >
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                          </button>
+
+                          <div className="document-main-info">
+                            <div className="document-title-line">
+                              <span className="document-name">{doc.name}</span>
+                              <span className={`activity-dot ${doc.activeEditors > 0 ? 'active' : ''}`}>
+                                {doc.activeEditors > 0 ? 'Active editing' : 'Idle'}
+                              </span>
+                            </div>
+                            <div className="document-meta-line">
+                              <span>Last opened {formatLastOpened(doc.lastOpenedAt)}</span>
+                              <span>{doc.activityLabel}</span>
+                            </div>
+                          </div>
+
+                          <div className="document-collaboration">
+                            <div className="avatar-group" aria-label="Collaborators">
+                              {doc.collaborators.slice(0, 3).map((person) => (
+                                <span key={`${doc.id}-${person.initials}`} className="avatar-pill" title={person.name}>
+                                  {person.initials}
+                                </span>
+                              ))}
+                            </div>
+                            <span className="collaboration-count">{doc.collaborators.length} collaborators</span>
+                          </div>
+
+                          <div className="document-quick-actions" onClick={(event) => event.stopPropagation()}>
+                            <button onClick={() => handleDocumentClick(doc.id)}>Open</button>
+                            <button onClick={(event) => handleQuickRename(event, doc.id)}>Rename</button>
+                            <button onClick={(event) => handleQuickShare(event, doc.id)}>Share</button>
+                            <button className="danger" onClick={(event) => handleQuickDelete(event, doc.id)}>Delete</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="documents-insights-grid">
+                      <div className="insight-card">
+                        <h3>Recently Viewed</h3>
+                        {recentlyViewed.length === 0 ? (
+                          <p>Open a document to build your quick-access list.</p>
+                        ) : (
+                          <div className="insight-list">
+                            {recentlyViewed.map((docName) => (
+                              <button
+                                key={docName}
+                                className="insight-item"
+                                onClick={() => handleDocumentClick(docName)}
+                              >
+                                {docName}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="insight-card">
+                        <h3>Suggested Documents</h3>
+                        {suggestedDocuments.length === 0 ? (
+                          <p>Suggestions will appear as your activity grows.</p>
+                        ) : (
+                          <div className="insight-list">
+                            {suggestedDocuments.map((doc) => (
+                              <button
+                                key={`suggested-${doc.id}`}
+                                className="insight-item"
+                                onClick={() => handleDocumentClick(doc.id)}
+                              >
+                                <span>{doc.name}</span>
+                                <small>{doc.activityLabel}</small>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </section>
         )}
 

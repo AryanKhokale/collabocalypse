@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import './CTASection.css';
 
-const PARTICLES = [
+export const CTA_PARTICLES = [
   // Top region (0-24%)
   { x: '2%', y: '4%', size: '2px', delay: '0.1s', duration: '5.3s' },
   { x: '4%', y: '8%', size: '2px', delay: '0.2s', duration: '5.1s' },
@@ -165,7 +165,7 @@ const CTASection = () => {
 
       <div className="cs-inner">
         <div className="cs-particles" aria-hidden="true">
-          {PARTICLES.map((particle, index) => (
+          {CTA_PARTICLES.map((particle, index) => (
             <span
               className="cs-particle"
               key={index}
