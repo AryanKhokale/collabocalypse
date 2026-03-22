@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
@@ -106,14 +106,43 @@ const PREVIEW_HEADINGS = {
 
 const DOCUMENT_FOLDERS = ['Workspace', 'Product', 'Marketing', 'Research', 'Archive'];
 
-const COLLABORATOR_POOL = [
-  { initials: 'AM', name: 'Ava Morgan' },
-  { initials: 'JR', name: 'Jared Ross' },
-  { initials: 'NL', name: 'Noah Lee' },
-  { initials: 'SK', name: 'Sana Khan' },
-  { initials: 'TP', name: 'Theo Patel' },
-  { initials: 'DM', name: 'Dina Moss' }
-];
+const getInitialsFromEmail = (email = '') => {
+  const localPart = String(email).split('@')[0] || '';
+  const segments = localPart
+    .split(/[^a-zA-Z0-9]+/)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+
+  if (segments.length >= 2) {
+    return `${segments[0][0]}${segments[1][0]}`.toUpperCase();
+  }
+
+  if (segments.length === 1) {
+    return segments[0].slice(0, 2).toUpperCase();
+  }
+
+  return 'NA';
+};
+
+const normalizeDocumentEntry = (doc) => {
+  if (typeof doc === 'string') {
+    const trimmedId = doc.trim();
+    if (!trimmedId) return null;
+    return { id: trimmedId, name: trimmedId, allowedUsers: [] };
+  }
+
+  if (!doc || typeof doc !== 'object') return null;
+
+  const id = String(doc.docid || doc.doc_id || doc.document_id || doc.id || doc.name || '').trim();
+  if (!id) return null;
+
+  const allowedUsersRaw = doc.allowed_users || doc.allowedUsers || doc.collaborators || [];
+  const allowedUsers = Array.isArray(allowedUsersRaw)
+    ? [...new Set(allowedUsersRaw.map((user) => String(user).trim()).filter(Boolean))]
+    : [];
+
+  return { id, name: String(doc.name || id), allowedUsers };
+};
 
 const hashString = (value) => {
   return value.split('').reduce((acc, char, index) => {
@@ -156,6 +185,7 @@ const Dashboard = () => {
   const [showOpenInput, setShowOpenInput] = useState(false);
   const [showCreateInput, setShowCreateInput] = useState(false);
   const [myDocuments, setMyDocuments] = useState([]);
+  const [recentDocuments, setRecentDocuments] = useState([]);
   const [showMyDocuments, setShowMyDocuments] = useState(false);
   const [documentsMode, setDocumentsMode] = useState('recent');
   const [documentsQuery, setDocumentsQuery] = useState('');
@@ -168,30 +198,51 @@ const Dashboard = () => {
   const [templateNames, setTemplateNames] = useState(DEFAULT_TEMPLATE_NAMES);
   const [newDocId, setNewDocId] = useState('');
   const [activeView, setActiveView] = useState('home');
+  const [documentUpdates, setDocumentUpdates] = useState({});
+  const contentPanelRef = useRef(null);
+
+  const sourceDocuments = useMemo(() => {
+    return documentsSort === 'recent' ? recentDocuments : myDocuments;
+  }, [documentsSort, recentDocuments, myDocuments]);
 
   const documentRecords = useMemo(() => {
-    return myDocuments.map((docName, index) => {
+    return sourceDocuments.map((docEntry, index) => {
+      const docName = docEntry.name || docEntry.id;
       const score = hashString(docName);
       const folder = DOCUMENT_FOLDERS[score % DOCUMENT_FOLDERS.length];
-      const lastOpenedAt = new Date(Date.now() - (score % 1440) * 60 * 1000);
-      const activityAt = new Date(Date.now() - ((score % 300) + 15) * 60 * 1000);
-      const collaboratorCount = (score % 3) + 2;
-      const collaborators = Array.from({ length: collaboratorCount }, (_, collaboratorIndex) => {
-        return COLLABORATOR_POOL[(score + collaboratorIndex) % COLLABORATOR_POOL.length];
-      });
+      
+      // Use real update time from /get-updates-info if available
+      let lastOpenedAt = new Date(Date.now() - (score % 1440) * 60 * 1000); // fallback
+      let activityAt = new Date(Date.now() - ((score % 300) + 15) * 60 * 1000); // fallback
+      
+      if (documentUpdates[docEntry.id]?.updated_at) {
+        const updateTime = new Date(documentUpdates[docEntry.id].updated_at + 'Z');
+        lastOpenedAt = updateTime;
+        activityAt = updateTime;
+      }
+      
+      const collaborators = (docEntry.allowedUsers || []).map((email) => ({
+        email,
+        initials: getInitialsFromEmail(email)
+      }));
+      const collaboratorsWithFallback =
+        collaborators.length > 0
+          ? collaborators
+          : [{ email: userEmail || 'me@local', initials: getInitialsFromEmail(userEmail || 'me@local') }];
 
       return {
-        id: docName,
+        id: docEntry.id,
         name: docName,
         folder,
         lastOpenedAt,
         activityAt,
         activityLabel: getRelativeTime(activityAt),
-        collaborators,
-        activeEditors: (score + index) % 2 === 0 ? 1 : 0
+        collaborators: collaboratorsWithFallback,
+        activeEditors: documentUpdates[docEntry.id]?.updated_by ? 1 : 0,
+        lastUpdatedBy: documentUpdates[docEntry.id]?.updated_by || null
       };
     });
-  }, [myDocuments]);
+  }, [sourceDocuments, userEmail, documentUpdates]);
 
   const folderStats = useMemo(() => {
     return DOCUMENT_FOLDERS.map((folderName) => ({
@@ -243,6 +294,70 @@ const Dashboard = () => {
       fetchAllTemplates();
     }
   }, [userEmail]);
+
+  useEffect(() => {
+    if (activeView !== 'open' && showOpenInput) {
+      setShowOpenInput(false);
+    }
+  }, [activeView, showOpenInput]);
+
+  // Fetch update info for documents
+  useEffect(() => {
+    if (sourceDocuments.length === 0) {
+      setDocumentUpdates({});
+      return;
+    }
+
+    const fetchUpdates = async () => {
+      const updates = {};
+      for (const doc of sourceDocuments) {
+        try {
+          const response = await fetch(
+            `${BACKEND_URL}/get-updates-info?doc_id=${encodeURIComponent(doc.id)}`
+          );
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`[get-updates-info] ${doc.id}:`, data);
+            updates[doc.id] = data;
+          }
+        } catch (error) {
+          console.error(`Failed to fetch update info for ${doc.id}:`, error);
+        }
+      }
+      console.log('[All document updates]:', updates);
+      setDocumentUpdates(updates);
+    };
+
+    fetchUpdates();
+  }, [sourceDocuments]);
+
+  // Restore scroll position when returning to documents view
+  useEffect(() => {
+    if (showMyDocuments && activeView === 'documents') {
+      setTimeout(() => {
+        const savedPosition = sessionStorage.getItem('dashboardScrollPosition');
+        if (contentPanelRef.current && savedPosition) {
+          const scrollValue = parseInt(savedPosition, 10);
+          console.log('[useEffect-view] Restoring to:', scrollValue);
+          contentPanelRef.current.scrollTop = scrollValue;
+          sessionStorage.removeItem('dashboardScrollPosition');
+        }
+      }, 100);
+    }
+  }, [showMyDocuments, activeView]);
+
+  // Also restore when visibleDocuments changes (ensures scroll is restored after data loads)
+  useEffect(() => {
+    const savedPosition = sessionStorage.getItem('dashboardScrollPosition');
+    if (savedPosition && contentPanelRef.current && showMyDocuments) {
+      setTimeout(() => {
+        const scrollValue = parseInt(savedPosition, 10);
+        console.log('[useEffect-visible] Restoring to:', scrollValue);
+        contentPanelRef.current.scrollTop = scrollValue;
+        sessionStorage.removeItem('dashboardScrollPosition');
+      }, 50);
+    }
+  }, [visibleDocuments]);
 
   const fetchAllTemplates = async () => {
     try {
@@ -357,28 +472,74 @@ const Dashboard = () => {
         result = rawText;
       }
 
-      const docsCandidate = Array.isArray(result)
-        ? result
-        : result?.documents || result?.recent_documents || result?.recent_docs || result?.data || result;
+      if (!response.ok) {
+        alert(
+          (result && (result.message || result.detail)) ||
+            `Failed to fetch documents from /${endpoint}`
+        );
+        return;
+      }
 
-      const normalizedDocs = Array.isArray(docsCandidate)
-        ? docsCandidate
-            .map((doc) =>
-              typeof doc === 'string'
-                ? doc
-                : doc?.docid || doc?.document_id || doc?.id || doc?.name
-            )
-            .filter(Boolean)
-        : typeof docsCandidate === 'string' && docsCandidate.trim()
-          ? [docsCandidate.trim()]
+      // Extract documents array based on mode and response structure
+      let docsArray = [];
+      if (Array.isArray(result)) {
+        // Direct array response
+        docsArray = result;
+      } else if (result && typeof result === 'object') {
+        // Object response - extract based on mode
+        if (mode === 'all') {
+          // For /my-documents: look for "documents" key
+          docsArray = result.documents || result.data || [];
+        } else {
+          // For /my-recent-documents: look for "recent_docs" key first
+          docsArray = result.recent_docs || result.recent_documents || result.documents || result.data || [];
+        }
+      }
+
+      let normalizedDocs = Array.isArray(docsArray)
+        ? docsArray.map(normalizeDocumentEntry).filter(Boolean)
+        : typeof docsArray === 'string' && docsArray.trim()
+          ? [normalizeDocumentEntry(docsArray.trim())].filter(Boolean)
           : [];
 
-      if (!response.ok) {
-        alert((result && (result.message || result.detail)) || 'Failed to fetch documents');
+      // For recent documents, fetch allowed_users for each doc to show correct collaborators
+      if (mode === 'recent' && normalizedDocs.length > 0) {
+        try {
+          // Fetch all documents once to get allowed_users for recent docs
+          const allDocsResponse = await fetch(
+            `${BACKEND_URL}/my-documents?admin_email=${encodeURIComponent(userEmail)}`
+          );
+          if (allDocsResponse.ok) {
+            const allDocsText = await allDocsResponse.text();
+            const allDocsResult = JSON.parse(allDocsText);
+            const allDocsList = allDocsResult.documents || [];
+            
+            // Create a map of docId -> allowed_users for quick lookup
+            const docCollaboratorsMap = {};
+            allDocsList.forEach(d => {
+              if (typeof d === 'object' && d.allowed_users) {
+                const docId = d.docid || d.id;
+                docCollaboratorsMap[docId] = d.allowed_users;
+              }
+            });
+            
+            // Enrich recent docs with collaborators
+            normalizedDocs = normalizedDocs.map(doc => ({
+              ...doc,
+              allowedUsers: docCollaboratorsMap[doc.id] || doc.allowedUsers
+            }));
+          }
+        } catch (error) {
+          console.error('Error enriching recent documents with collaborators:', error);
+        }
       }
 
       setDocumentsMode(mode);
-      setMyDocuments(normalizedDocs);
+      if (mode === 'recent') {
+        setRecentDocuments(normalizedDocs);
+      } else {
+        setMyDocuments(normalizedDocs);
+      }
       setShowMyDocuments(true);
     } catch (error) {
       console.error('My documents error:', error);
@@ -389,6 +550,13 @@ const Dashboard = () => {
   };
 
   const handleDocumentClick = async (docId) => {
+    // Save scroll position to sessionStorage before navigating
+    if (contentPanelRef.current) {
+      const scrollPos = contentPanelRef.current.scrollTop;
+      console.log('[handleDocumentClick] dashboard-main scrollTop:', scrollPos);
+      sessionStorage.setItem('dashboardScrollPosition', scrollPos);
+    }
+    
     setLoading(true);
     try {
       const response = await fetch(
@@ -443,7 +611,10 @@ const Dashboard = () => {
     }
 
     setMyDocuments((current) =>
-      current.map((doc) => (doc === docId ? renamedDoc.trim() : doc))
+      current.map((doc) => (doc.id === docId ? { ...doc, id: renamedDoc.trim(), name: renamedDoc.trim() } : doc))
+    );
+    setRecentDocuments((current) =>
+      current.map((doc) => (doc.id === docId ? { ...doc, id: renamedDoc.trim(), name: renamedDoc.trim() } : doc))
     );
     setPinnedDocuments((current) =>
       current.map((doc) => (doc === docId ? renamedDoc.trim() : doc))
@@ -460,7 +631,8 @@ const Dashboard = () => {
       return;
     }
 
-    setMyDocuments((current) => current.filter((doc) => doc !== docId));
+    setMyDocuments((current) => current.filter((doc) => doc.id !== docId));
+    setRecentDocuments((current) => current.filter((doc) => doc.id !== docId));
     setPinnedDocuments((current) => current.filter((doc) => doc !== docId));
     setRecentlyViewed((current) => current.filter((doc) => doc !== docId));
   };
@@ -577,10 +749,28 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
+      {loading && (
+        <div className="navigation-loading-overlay">
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+            <p>Opening document...</p>
+          </div>
+        </div>
+      )}
       {/* Sidebar */}
       <div className="dashboard-sidebar">
         <div className="sidebar-header">
-          <h2 className="app-name">Collabocalypse</h2>
+          <div className="brand-row">
+            <svg className="dashboard-logo" width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="6" y="4" width="20" height="24" rx="2" fill="none" stroke="#9f7aea" strokeWidth="1.8"/>
+              <line x1="10" y1="10" x2="18" y2="10" stroke="#a855f7" strokeWidth="1.5" strokeLinecap="round"/>
+              <line x1="10" y1="14" x2="22" y2="14" stroke="#7dd3fc" strokeWidth="1.5" strokeLinecap="round"/>
+              <line x1="10" y1="18" x2="16" y2="18" stroke="#a855f7" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M19 9l0 6 2 -2 1.5 3 1.5 -0.5 -1.5 -3 2.5 0z" fill="#a855f7" stroke="#a855f7" strokeWidth="0.5"/>
+              <path d="M13 21l0 5 1.5 -1.5 1 2.5 1.2 -0.5 -1 -2.5 2 0z" fill="#7dd3fc" stroke="#7dd3fc" strokeWidth="0.5"/>
+            </svg>
+            <h2 className="app-name">Collabocalypse</h2>
+          </div>
         </div>
         
         <nav className="sidebar-nav">
@@ -633,7 +823,7 @@ const Dashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="dashboard-main">
+      <div className="dashboard-main" ref={contentPanelRef}>
         {/* Greeting Section */}
         <div className="greeting-section">
           <h1 className="greeting">{getGreeting()}, {userName}</h1>
@@ -694,7 +884,7 @@ const Dashboard = () => {
             <div className="documents-toolbar">
               <div>
                 <h2 className="section-title documents-section-title">
-                  {documentsMode === 'all' ? 'My documents' : 'Recent documents'}
+                  {documentsSort === 'recent' ? 'Recent documents' : 'My documents'}
                 </h2>
                 <p className="documents-subtitle">Search, sort, pin, and jump between folders instantly.</p>
               </div>
@@ -730,7 +920,11 @@ const Dashboard = () => {
                 <span>Sort</span>
                 <select
                   value={documentsSort}
-                  onChange={(event) => setDocumentsSort(event.target.value)}
+                  onChange={(event) => {
+                    const newSort = event.target.value;
+                    setDocumentsSort(newSort);
+                    handleDocumentsFetch(newSort === 'recent' ? 'recent' : 'all');
+                  }}
                 >
                   <option value="recent">Recent</option>
                   <option value="az">A-Z</option>
@@ -849,12 +1043,16 @@ const Dashboard = () => {
                           <div className="document-collaboration">
                             <div className="avatar-group" aria-label="Collaborators">
                               {doc.collaborators.slice(0, 3).map((person) => (
-                                <span key={`${doc.id}-${person.initials}`} className="avatar-pill" title={person.name}>
+                                <span key={`${doc.id}-${person.email}`} className="avatar-pill" title={person.email}>
                                   {person.initials}
                                 </span>
                               ))}
                             </div>
-                            <span className="collaboration-count">{doc.collaborators.length} collaborators</span>
+                            <span className="collaboration-count">
+                              {doc.collaborators.length === 1
+                                ? 'Only you'
+                                : `${doc.collaborators.length} collaborators`}
+                            </span>
                           </div>
 
                           <div className="document-quick-actions" onClick={(event) => event.stopPropagation()}>
