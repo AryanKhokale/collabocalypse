@@ -630,17 +630,33 @@ const Dashboard = () => {
     );
   };
 
-  const handleQuickDelete = (event, docId) => {
+  const handleQuickDelete = async (event, docId) => {
     event.stopPropagation();
     const shouldDelete = window.confirm(`Delete ${docId}?`);
     if (!shouldDelete) {
       return;
     }
 
-    setMyDocuments((current) => current.filter((doc) => doc.id !== docId));
-    setRecentDocuments((current) => current.filter((doc) => doc.id !== docId));
-    setPinnedDocuments((current) => current.filter((doc) => doc !== docId));
-    setRecentlyViewed((current) => current.filter((doc) => doc !== docId));
+    try {
+      const response = await fetch(
+        `${BACKEND_URL}/delete/${encodeURIComponent(docId)}?user_email=${encodeURIComponent(userEmail)}`,
+        { method: 'DELETE' }
+      );
+
+      if (!response.ok) {
+        alert('Failed to delete document');
+        return;
+      }
+
+      // Remove from local state after successful deletion
+      setMyDocuments((current) => current.filter((doc) => doc.id !== docId));
+      setRecentDocuments((current) => current.filter((doc) => doc.id !== docId));
+      setPinnedDocuments((current) => current.filter((doc) => doc !== docId));
+      setRecentlyViewed((current) => current.filter((doc) => doc !== docId));
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      alert('Error deleting document');
+    }
   };
 
   const handleQuickShare = async (event, docId) => {
