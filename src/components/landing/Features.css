@@ -137,6 +137,9 @@
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: auto auto auto;
   gap: 18px;
+  justify-content: center;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 /* Card sizes */

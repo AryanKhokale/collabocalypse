@@ -205,6 +205,9 @@ const Dashboard = () => {
   const [notes, setNotes] = useState('');
   const [notesInput, setNotesInput] = useState('');
   const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [showAddToWorkspacModal, setShowAddToWorkspaceModal] = useState(false);
+  const [addToWorkspaceDocId, setAddToWorkspaceDocId] = useState('');
+  const [selectedAddToFolder, setSelectedAddToFolder] = useState('Workspace');
   const contentPanelRef = useRef(null);
 
   const sourceDocuments = useMemo(() => {
@@ -861,6 +864,51 @@ const Dashboard = () => {
     }
   };
 
+  const handleAddToWorkspace = (event, docId) => {
+    event.stopPropagation();
+    setAddToWorkspaceDocId(docId);
+    setSelectedAddToFolder('Workspace');
+    setShowAddToWorkspaceModal(true);
+  };
+
+  const confirmAddToWorkspace = async () => {
+    if (!addToWorkspaceDocId) {
+      alert('No document selected');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('access_token');
+      const response = await fetch(
+        `${BACKEND_URL}/add-to-workspace?user_email=${encodeURIComponent(userEmail)}&docid=${encodeURIComponent(addToWorkspaceDocId)}&folder=${encodeURIComponent(selectedAddToFolder)}`,
+        {
+          method: 'POST',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        }
+      );
+
+      const result = await response.json();
+      console.log('[add-to-workspace] response:', result);
+
+      if (response.ok || result.status === 'success') {
+        alert(`Document added to ${selectedAddToFolder} successfully.`);
+        setShowAddToWorkspaceModal(false);
+        setAddToWorkspaceDocId('');
+        setSelectedAddToFolder('Workspace');
+        // Refresh documents
+        handleDocumentsFetch(documentsSort);
+      } else {
+        alert(result.message || 'Failed to add document to workspace.');
+      }
+    } catch (error) {
+      console.error('Error adding document to workspace:', error);
+      alert('Error adding document to workspace.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const toggleFolderCollapse = (folderName) => {
     setCollapsedFolders((current) => {
       if (current.includes(folderName)) {
@@ -1287,6 +1335,7 @@ const Dashboard = () => {
                             <button onClick={() => handleDocumentClick(doc.id)} disabled={docDeleteInProgress === doc.id}>Open</button>
                             <button onClick={(event) => handleQuickRename(event, doc.id)} disabled={docDeleteInProgress === doc.id}>Rename</button>
                             <button onClick={(event) => handleQuickShare(event, doc.id)} disabled={docDeleteInProgress === doc.id}>Share</button>
+                            <button onClick={(event) => handleAddToWorkspace(event, doc.id)} disabled={loading}>Add to Workspace</button>
                             <button className="danger" onClick={(event) => handleQuickDelete(event, doc.id)} disabled={docDeleteInProgress === doc.id}>
                               {docDeleteInProgress === doc.id ? '...' : 'Delete'}
                             </button>
@@ -1377,6 +1426,127 @@ const Dashboard = () => {
           </section>
         )}
 
+        {/* Open Document Section */}
+        {activeView === 'open' && (
+          <section className="open-document-section">
+            <div className="documents-toolbar">
+              <div>
+                <h2 className="section-title documents-section-title">Open Document</h2>
+                <p className="documents-subtitle">Enter a document ID to open and view it.</p>
+              </div>
+            </div>
+
+            <div className="documents-workspace-layout">
+              <aside className="documents-folder-sidebar">
+                <div className="open-input-container">
+                  <input
+                    type="text"
+                    placeholder="Enter document ID"
+                    value={docIdInput}
+                    onChange={(e) => setDocIdInput(e.target.value)}
+                    className="open-document-input"
+                    disabled={loading}
+                    onKeyPress={(e) => e.key === 'Enter' && handleOpenDocument()}
+                  />
+                  <button 
+                    className="open-document-button"
+                    onClick={handleOpenDocument}
+                    disabled={loading || !docIdInput.trim()}
+                  >
+                    {loading ? 'Opening...' : 'Open'}
+                  </button>
+                </div>
+
+                <div className="sidebar-insights-section">
+                  <div className="insight-card notes-card">
+                    <div className="notes-card-header">
+                      <h3>My Notes</h3>
+                      {!isEditingNotes && (
+                        <button
+                          className="notes-icon-button"
+                          onClick={() => {
+                            setNotesInput(notes);
+                            setIsEditingNotes(true);
+                          }}
+                        >
+                          {notes ? 'Edit' : 'Start writing'}
+                        </button>
+                      )}
+                    </div>
+
+                    {isEditingNotes ? (
+                      <div className="inline-notes-editor">
+                        <textarea
+                          className="notes-textarea"
+                          value={notesInput}
+                          onChange={(e) => setNotesInput(e.target.value)}
+                          placeholder="Write your notes here..."
+                          rows="7"
+                        />
+                        <div className="notes-actions">
+                          <button
+                            className="save-notes-btn"
+                            onClick={handleSaveNotes}
+                          >
+                            Save Notes
+                          </button>
+                          <button
+                            className="cancel-notes-btn"
+                            onClick={() => {
+                              setNotesInput(notes);
+                              setIsEditingNotes(false);
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className={`insight-notes-display ${notes ? 'has-note' : 'empty'}`}>
+                        {notes ? (
+                          <p className="notes-content">{notes}</p>
+                        ) : (
+                          <p className="notes-placeholder">No notes yet. Start writing.</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="insight-card">
+                    <h3>Suggested Documents</h3>
+                    {suggestedDocuments.length === 0 ? (
+                      <p>Suggestions will appear as your activity grows.</p>
+                    ) : (
+                      <div className="insight-list">
+                        {suggestedDocuments.map((doc) => (
+                          <button
+                            key={`suggested-${doc.id}`}
+                            className="insight-item"
+                            onClick={() => handleDocumentClick(doc.id)}
+                          >
+                            <span>{doc.name}</span>
+                            <small>{doc.activityLabel}</small>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </aside>
+
+              <div className="documents-content-panel">
+                <div className="open-document-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                  </svg>
+                  <h3>Enter a document ID to get started</h3>
+                  <p>Open any document by its ID to view and collaborate in real-time</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Modals for Create/Open */}
         {showCreateInput && (
           <div className="modal-overlay" onClick={() => setShowCreateInput(false)}>
@@ -1447,7 +1617,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {showOpenInput && (
+        {showOpenInput && activeView !== 'open' && (
           <div className="modal-overlay" onClick={() => setShowOpenInput(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h3>Open document</h3>
@@ -1474,6 +1644,65 @@ const Dashboard = () => {
                   onClick={() => {
                     setShowOpenInput(false);
                     setDocIdInput('');
+                  }}
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add to Workspace Modal */}
+        {showAddToWorkspacModal && (
+          <div className="modal-overlay" onClick={() => setShowAddToWorkspaceModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h3>Add to Workspace/Folder</h3>
+              <div className="modal-folder-selector">
+                <label htmlFor="add-to-folder-input">Select Folder:</label>
+                <input
+                  id="add-to-folder-input"
+                  type="text"
+                  placeholder="e.g., Workspace, Project X, etc."
+                  value={selectedAddToFolder}
+                  onChange={(e) => setSelectedAddToFolder(e.target.value)}
+                  className="modal-folder-input"
+                  disabled={loading}
+                />
+              </div>
+              {userFolders.length > 0 && (
+                <div className="modal-available-folders">
+                  <label>Available folders:</label>
+                  <div className="modal-folder-chips">
+                    {userFolders.map((folder) => (
+                      <button
+                        key={folder}
+                        className={`modal-folder-chip ${selectedAddToFolder === folder ? 'active' : ''}`}
+                        onClick={() => setSelectedAddToFolder(folder)}
+                        disabled={loading}
+                        type="button"
+                      >
+                        {folder}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="modal-actions">
+                <button 
+                  className="modal-button primary" 
+                  onClick={confirmAddToWorkspace}
+                  disabled={loading || !selectedAddToFolder.trim()}
+                >
+                  {loading ? 'Adding...' : 'Add'}
+                </button>
+                <button 
+                  className="modal-button" 
+                  onClick={() => {
+                    setShowAddToWorkspaceModal(false);
+                    setAddToWorkspaceDocId('');
+                    setSelectedAddToFolder('Workspace');
                   }}
                   disabled={loading}
                 >

@@ -133,8 +133,7 @@ const Login = () => {
             </div>
             <nav className="navbar-center">
               <a href="#features" className="nav-link">Features</a>
-              <a href="#docs" className="nav-link">Docs</a>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="nav-link">GitHub</a>
+              <a href="https://github.com/AryanKhokale" target="_blank" rel="noopener noreferrer" className="nav-link">GitHub</a>
             </nav>
             <div className="navbar-right">
               <button className="nav-cta" onClick={login}>Sign In</button>
