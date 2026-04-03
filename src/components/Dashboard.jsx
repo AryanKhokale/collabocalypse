@@ -104,8 +104,6 @@ const PREVIEW_HEADINGS = {
   resume: new Set(['Skills', 'Experience', 'Education', 'Awards'])
 };
 
-const DOCUMENT_FOLDERS = ['Workspace', 'Product', 'Marketing', 'Research', 'Archive'];
-
 const getInitialsFromEmail = (email = '') => {
   const localPart = String(email).split('@')[0] || '';
   const segments = localPart
@@ -198,7 +196,15 @@ const Dashboard = () => {
   const [templateNames, setTemplateNames] = useState(DEFAULT_TEMPLATE_NAMES);
   const [newDocId, setNewDocId] = useState('');
   const [activeView, setActiveView] = useState('home');
+  const [selectedCreateFolder, setSelectedCreateFolder] = useState('Workspace');
   const [documentUpdates, setDocumentUpdates] = useState({});
+  const [userFolders, setUserFolders] = useState([]);
+  const [fileFolderMapping, setFileFolderMapping] = useState({});
+  const [folderDeleteInProgress, setFolderDeleteInProgress] = useState(null);
+  const [docDeleteInProgress, setDocDeleteInProgress] = useState(null);
+  const [notes, setNotes] = useState('');
+  const [notesInput, setNotesInput] = useState('');
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
   const contentPanelRef = useRef(null);
 
   const sourceDocuments = useMemo(() => {
@@ -209,7 +215,7 @@ const Dashboard = () => {
     return sourceDocuments.map((docEntry, index) => {
       const docName = docEntry.name || docEntry.id;
       const score = hashString(docName);
-      const folder = DOCUMENT_FOLDERS[score % DOCUMENT_FOLDERS.length];
+      const folder = fileFolderMapping[docEntry.id] || docEntry.folder || 'Workspace';
       
       // Use real update time from /get-updates-info if available
       let lastOpenedAt = new Date(Date.now() - (score % 1440) * 60 * 1000); // fallback
@@ -242,14 +248,14 @@ const Dashboard = () => {
         lastUpdatedBy: documentUpdates[docEntry.id]?.updated_by || null
       };
     });
-  }, [sourceDocuments, userEmail, documentUpdates]);
+  }, [sourceDocuments, userEmail, documentUpdates, fileFolderMapping]);
 
   const folderStats = useMemo(() => {
-    return DOCUMENT_FOLDERS.map((folderName) => ({
+    return userFolders.map((folderName) => ({
       folderName,
       count: documentRecords.filter((doc) => doc.folder === folderName).length
     }));
-  }, [documentRecords]);
+  }, [userFolders, documentRecords]);
 
   const visibleDocuments = useMemo(() => {
     const filtered = documentRecords.filter((doc) => {
@@ -288,10 +294,48 @@ const Dashboard = () => {
     setUserName(name || 'User');
   }, [navigate]);
 
+  const fetchUserFolders = async (email) => {
+    try {
+      const response = await fetch(
+        `${BACKEND_URL}/user-folders?user_email=${encodeURIComponent(email)}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        console.log('[user-folders] response:', data);
+        
+        // Store the file-to-folder mapping
+        setFileFolderMapping(data || {});
+        
+        // Extract unique folder names from object values (not keys)
+        if (data && typeof data === 'object') {
+          const folderNames = [...new Set(Object.values(data))];
+          console.log('[user-folders] extracted folders:', folderNames);
+          
+          if (folderNames.length > 0) {
+            setUserFolders(folderNames);
+          } else {
+            setUserFolders(['Workspace']);
+          }
+        } else {
+          setUserFolders(['Workspace']);
+        }
+      } else {
+        setUserFolders(['Workspace']);
+        setFileFolderMapping({});
+      }
+    } catch (error) {
+      console.error('Error fetching user folders:', error);
+      setUserFolders(['Workspace']);
+      setFileFolderMapping({});
+    }
+  };
+
   useEffect(() => {
     if (userEmail) {
       handleDocumentsFetch('recent');
       fetchAllTemplates();
+      fetchUserFolders(userEmail);
+      fetchNotes(userEmail);
     }
   }, [userEmail]);
 
@@ -330,6 +374,15 @@ const Dashboard = () => {
 
     fetchUpdates();
   }, [sourceDocuments]);
+
+  // Debug logging for folders
+  useEffect(() => {
+    console.log('[Folders Debug]', {
+      userFolders,
+      folderStats,
+      folderCount: folderStats.length
+    });
+  }, [userFolders, folderStats]);
 
   // Restore scroll position when returning to documents view
   useEffect(() => {
@@ -412,7 +465,28 @@ const Dashboard = () => {
       const result = await response.json();
 
       if (result.status === 'success') {
+        // Add document to workspace/folder
+        try {
+          const workspaceQuery = `user_email=${encodeURIComponent(userEmail)}&docid=${encodeURIComponent(newDocId.trim())}&folder=${encodeURIComponent(selectedCreateFolder)}`;
+          const workspaceResponse = await fetch(
+            `${BACKEND_URL}/add-to-workspace?${workspaceQuery}`,
+            {
+              method: 'POST',
+              headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            }
+          );
+          
+          const workspaceResult = await workspaceResponse.json();
+          console.log('Add to workspace result:', workspaceResult);
+        } catch (error) {
+          console.error('Error adding document to workspace:', error);
+          // Continue anyway - document is created even if folder assignment fails
+        }
+
         setSelectedTemplateType('');
+        setNewDocId('');
+        setSelectedCreateFolder('Workspace');
+        setShowCreateInput(false);
         navigate(`/editor/${newDocId.trim()}`);
       } else {
         alert(result.message || 'Failed to create document');
@@ -556,6 +630,59 @@ const Dashboard = () => {
     }
   };
 
+  const fetchNotes = async (email) => {
+    try {
+      const response = await fetch(
+        `${BACKEND_URL}/user-notes?user_email=${encodeURIComponent(email)}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        console.log('[user-notes] Fetched notes:', data);
+        const fetchedNotes =
+          typeof data === 'string'
+            ? data
+            : (data?.notes || data?.note || data?.data?.notes || '');
+        setNotes(fetchedNotes);
+        setNotesInput(fetchedNotes);
+        setIsEditingNotes(false);
+      } else {
+        console.warn('Failed to fetch notes');
+      }
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+    }
+  };
+
+  const handleSaveNotes = async () => {
+    if (!notesInput.trim()) {
+      alert('Notes cannot be empty.');
+      return;
+    }
+
+    try {
+      console.log('[user-notes] Saving notes:', notesInput);
+      const response = await fetch(
+        `${BACKEND_URL}/user-notes?user_email=${encodeURIComponent(userEmail)}&notes=${encodeURIComponent(notesInput)}`,
+        {
+          method: 'POST'
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('[user-notes] Save response:', result);
+        setNotes(notesInput);
+        setIsEditingNotes(false);
+        alert('Notes saved successfully!');
+      } else {
+        alert('Failed to save notes.');
+      }
+    } catch (error) {
+      console.error('Error saving notes:', error);
+      alert('Error saving notes.');
+    }
+  };
+
   const handleDocumentClick = async (docId) => {
     // Save current view and scroll position before navigating
     sessionStorage.setItem('dashboardActiveView', activeView);
@@ -630,17 +757,97 @@ const Dashboard = () => {
     );
   };
 
-  const handleQuickDelete = (event, docId) => {
+  const handleQuickDelete = async (event, docId) => {
     event.stopPropagation();
-    const shouldDelete = window.confirm(`Delete ${docId}?`);
+    const shouldDelete = window.confirm(`Delete "${docId}" from workspace?`);
     if (!shouldDelete) {
       return;
     }
 
-    setMyDocuments((current) => current.filter((doc) => doc.id !== docId));
-    setRecentDocuments((current) => current.filter((doc) => doc.id !== docId));
-    setPinnedDocuments((current) => current.filter((doc) => doc !== docId));
-    setRecentlyViewed((current) => current.filter((doc) => doc !== docId));
+    setDocDeleteInProgress(docId);
+    try {
+      const token = sessionStorage.getItem('access_token');
+      const response = await fetch(
+        `${BACKEND_URL}/remove-from-workspace?user_email=${encodeURIComponent(userEmail)}&docid=${encodeURIComponent(docId)}`,
+        {
+          method: 'POST',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        }
+      );
+
+      const result = await response.json();
+      console.log('[remove-from-workspace] response:', result);
+
+      if (response.ok || result.status === 'success') {
+        // Remove from local state
+        setMyDocuments((current) => current.filter((doc) => doc.id !== docId));
+        setRecentDocuments((current) => current.filter((doc) => doc.id !== docId));
+        setPinnedDocuments((current) => current.filter((doc) => doc !== docId));
+        setRecentlyViewed((current) => current.filter((doc) => doc !== docId));
+        alert(`"${docId}" removed successfully.`);
+      } else {
+        alert(result.message || 'Failed to remove document from workspace.');
+      }
+    } catch (error) {
+      console.error('Error removing document:', error);
+      alert('Error removing document from workspace.');
+    } finally {
+      setDocDeleteInProgress(null);
+    }
+  };
+
+  const handleFolderDelete = async (folderName) => {
+    const shouldDelete = window.confirm(`Delete all documents in "${folderName}" folder?`);
+    if (!shouldDelete) {
+      return;
+    }
+
+    setFolderDeleteInProgress(folderName);
+    try {
+      const token = sessionStorage.getItem('access_token');
+      // Get all documents in this folder
+      const docsInFolder = documentRecords.filter((doc) => doc.folder === folderName);
+      
+      if (docsInFolder.length === 0) {
+        alert(`No documents in "${folderName}" folder.`);
+        setFolderDeleteInProgress(null);
+        return;
+      }
+
+      // Remove each document from the folder
+      let successCount = 0;
+      for (const doc of docsInFolder) {
+        try {
+          const response = await fetch(
+            `${BACKEND_URL}/remove-from-workspace?user_email=${encodeURIComponent(userEmail)}&docid=${encodeURIComponent(doc.id)}`,
+            {
+              method: 'POST',
+              headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            }
+          );
+          
+          const result = await response.json();
+          if (response.ok || result.status === 'success') {
+            successCount++;
+            // Remove from local state
+            setMyDocuments((current) => current.filter((d) => d.id !== doc.id));
+            setRecentDocuments((current) => current.filter((d) => d.id !== doc.id));
+            setPinnedDocuments((current) => current.filter((d) => d !== doc.id));
+            setRecentlyViewed((current) => current.filter((d) => d !== doc.id));
+          }
+        } catch (error) {
+          console.error(`Error removing document ${doc.id}:`, error);
+        }
+      }
+
+      alert(`Removed ${successCount} document(s) from "${folderName}" folder.`);
+      setSelectedFolder('All Documents');
+    } catch (error) {
+      console.error('Error deleting folder:', error);
+      alert('Error deleting folder.');
+    } finally {
+      setFolderDeleteInProgress(null);
+    }
   };
 
   const handleQuickShare = async (event, docId) => {
@@ -953,10 +1160,25 @@ const Dashboard = () => {
                     <button
                       className={`folder-item ${selectedFolder === folder.folderName ? 'active' : ''}`}
                       onClick={() => setSelectedFolder(folder.folderName)}
+                      onContextMenu={(event) => {
+                        event.preventDefault();
+                        handleFolderDelete(folder.folderName);
+                      }}
                     >
                       <span>{folder.folderName}</span>
                       <span className="folder-meta">
                         <span className="folder-count">{folder.count}</span>
+                        <button
+                          className="folder-delete-btn"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleFolderDelete(folder.folderName);
+                          }}
+                          title="Delete folder"
+                          disabled={folderDeleteInProgress === folder.folderName}
+                        >
+                          {folderDeleteInProgress === folder.folderName ? '...' : '✕'}
+                        </button>
                         <span
                           className={`folder-collapse-toggle ${collapsedFolders.includes(folder.folderName) ? 'collapsed' : ''}`}
                           onClick={(event) => {
@@ -1062,31 +1284,68 @@ const Dashboard = () => {
                           </div>
 
                           <div className="document-quick-actions" onClick={(event) => event.stopPropagation()}>
-                            <button onClick={() => handleDocumentClick(doc.id)}>Open</button>
-                            <button onClick={(event) => handleQuickRename(event, doc.id)}>Rename</button>
-                            <button onClick={(event) => handleQuickShare(event, doc.id)}>Share</button>
-                            <button className="danger" onClick={(event) => handleQuickDelete(event, doc.id)}>Delete</button>
+                            <button onClick={() => handleDocumentClick(doc.id)} disabled={docDeleteInProgress === doc.id}>Open</button>
+                            <button onClick={(event) => handleQuickRename(event, doc.id)} disabled={docDeleteInProgress === doc.id}>Rename</button>
+                            <button onClick={(event) => handleQuickShare(event, doc.id)} disabled={docDeleteInProgress === doc.id}>Share</button>
+                            <button className="danger" onClick={(event) => handleQuickDelete(event, doc.id)} disabled={docDeleteInProgress === doc.id}>
+                              {docDeleteInProgress === doc.id ? '...' : 'Delete'}
+                            </button>
                           </div>
                         </div>
                       ))}
                     </div>
 
                     <div className="documents-insights-grid">
-                      <div className="insight-card">
-                        <h3>Recently Viewed</h3>
-                        {recentlyViewed.length === 0 ? (
-                          <p>Open a document to build your quick-access list.</p>
-                        ) : (
-                          <div className="insight-list">
-                            {recentlyViewed.map((docName) => (
+                      <div className="insight-card notes-card">
+                        <div className="notes-card-header">
+                          <h3>My Notes</h3>
+                          {!isEditingNotes && (
+                            <button
+                              className="notes-icon-button"
+                              onClick={() => {
+                                setNotesInput(notes);
+                                setIsEditingNotes(true);
+                              }}
+                            >
+                              {notes ? 'Edit' : 'Start writing'}
+                            </button>
+                          )}
+                        </div>
+
+                        {isEditingNotes ? (
+                          <div className="inline-notes-editor">
+                            <textarea
+                              className="notes-textarea"
+                              value={notesInput}
+                              onChange={(e) => setNotesInput(e.target.value)}
+                              placeholder="Write your notes here..."
+                              rows="7"
+                            />
+                            <div className="notes-actions">
                               <button
-                                key={docName}
-                                className="insight-item"
-                                onClick={() => handleDocumentClick(docName)}
+                                className="save-notes-btn"
+                                onClick={handleSaveNotes}
                               >
-                                {docName}
+                                Save Notes
                               </button>
-                            ))}
+                              <button
+                                className="cancel-notes-btn"
+                                onClick={() => {
+                                  setNotesInput(notes);
+                                  setIsEditingNotes(false);
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className={`insight-notes-display ${notes ? 'has-note' : 'empty'}`}>
+                            {notes ? (
+                              <p className="notes-content">{notes}</p>
+                            ) : (
+                              <p className="notes-placeholder">No notes yet. Start writing.</p>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1133,6 +1392,36 @@ const Dashboard = () => {
                 onKeyPress={(e) => e.key === 'Enter' && handleCreateDocument()}
                 autoFocus
               />
+              <div className="modal-folder-selector">
+                <label htmlFor="folder-input">Add to folder:</label>
+                <input
+                  id="folder-input"
+                  type="text"
+                  placeholder="e.g., Workspace, Project X, etc."
+                  value={selectedCreateFolder}
+                  onChange={(e) => setSelectedCreateFolder(e.target.value)}
+                  className="modal-folder-input"
+                  disabled={loading}
+                />
+              </div>
+              {userFolders.length > 0 && (
+                <div className="modal-available-folders">
+                  <label>Available folders:</label>
+                  <div className="modal-folder-chips">
+                    {userFolders.map((folder) => (
+                      <button
+                        key={folder}
+                        className={`modal-folder-chip ${selectedCreateFolder === folder ? 'active' : ''}`}
+                        onClick={() => setSelectedCreateFolder(folder)}
+                        disabled={loading}
+                        type="button"
+                      >
+                        {folder}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="modal-actions">
                 <button 
                   className="modal-button primary" 
@@ -1147,6 +1436,7 @@ const Dashboard = () => {
                     setShowCreateInput(false);
                     setNewDocId('');
                     setSelectedTemplateType('');
+                    setSelectedCreateFolder('Workspace');
                   }}
                   disabled={loading}
                 >
