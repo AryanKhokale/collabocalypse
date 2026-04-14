@@ -1,6 +1,5 @@
 # Collabocalypse
 
-## Overview
 **Collabocalypse** is a collaborative real-time document editing platform that enables multiple users to work on shared documents simultaneously. It combines a robust FastAPI backend with a modern React frontend, featuring real-time synchronization via WebSockets, user authentication through Keycloak, and persistent storage with PostgreSQL and Redis caching.
 
 ## Features
