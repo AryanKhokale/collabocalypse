@@ -1,0 +1,239 @@
+.cs-section {
+  position: relative;
+  padding: 120px 40px 130px;
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: center;
+  background: linear-gradient(180deg, 
+    rgba(10, 8, 20, 1) 0%, 
+    rgba(18, 12, 35, 1) 50%,
+    rgba(12, 8, 25, 1) 100%
+  );
+}
+
+/* Ambient glows */
+.cs-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.cs-section.cs-visible .cs-glow {
+  opacity: 1;
+}
+
+.cs-glow-left {
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.35) 0%, rgba(126, 34, 206, 0.22) 40%, transparent 70%);
+  top: -100px;
+  left: -150px;
+  animation: glowFloat 8s ease-in-out infinite;
+}
+
+.cs-glow-right {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.28) 0%, rgba(99, 32, 200, 0.18) 40%, transparent 70%);
+  bottom: -100px;
+  right: -150px;
+  animation: glowFloat 10s ease-in-out infinite reverse;
+}
+
+@keyframes glowFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%       { transform: translate(30px, -20px) scale(1.08); }
+}
+
+/* Inner */
+.cs-inner {
+  position: relative;
+  max-width: 720px;
+  margin: 0 auto;
+  z-index: 2;
+}
+
+.cs-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cs-particle {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 45%, rgba(255, 255, 255, 0) 100%);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.7), 0 0 20px rgba(255, 255, 255, 0.45);
+  opacity: 0;
+  animation: csParticleTwinkle var(--duration) ease-in-out var(--delay) infinite;
+}
+
+.cs-section.cs-visible .cs-particle {
+  opacity: 1;
+}
+
+@keyframes csParticleTwinkle {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(0.8);
+    opacity: 0.15;
+  }
+  40% {
+    transform: translate3d(0, -7px, 0) scale(1.15);
+    opacity: 0.7;
+  }
+  70% {
+    transform: translate3d(3px, -12px, 0) scale(0.95);
+    opacity: 0.35;
+  }
+}
+
+/* Title */
+.cs-title {
+  font-size: 62px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  margin: 0 0 24px;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s 0.1s, transform 0.6s 0.1s;
+  position: relative;
+  z-index: 2;
+}
+
+.cs-section.cs-visible .cs-title {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cs-title-grad {
+  background: linear-gradient(135deg, #e0b0ff 0%, #c084fc 40%, #9333ea 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Sub */
+.cs-sub {
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.75;
+  max-width: 540px;
+  margin: 0 auto 44px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s 0.18s, transform 0.6s 0.18s;
+  position: relative;
+  z-index: 2;
+}
+
+.cs-section.cs-visible .cs-sub {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Actions */
+.cs-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s 0.26s, transform 0.6s 0.26s;
+  position: relative;
+  z-index: 2;
+}
+
+.cs-section.cs-visible .cs-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cs-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 36px;
+  background: rgba(10, 10, 15, 0.6);
+  color: #fff;
+  border: 2px solid #9f7aea;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  box-shadow: 
+    0 0 20px rgba(159, 122, 234, 0.55),
+    0 0 40px rgba(159, 122, 234, 0.28),
+    inset 0 0 20px rgba(159, 122, 234, 0.09);
+  transition: all 0.25s ease;
+}
+
+.cs-btn-primary:hover {
+  background: rgba(159, 122, 234, 0.13);
+  border-color: #b794f4;
+  box-shadow: 
+    0 0 30px rgba(183, 148, 244, 0.75),
+    0 0 60px rgba(183, 148, 244, 0.45),
+    inset 0 0 25px rgba(183, 148, 244, 0.17);
+  transform: translateY(-2px);
+}
+
+.cs-btn-primary svg {
+  transition: transform 0.25s;
+}
+
+.cs-btn-primary:hover svg {
+  transform: translateX(3px);
+}
+
+.cs-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  padding: 15px 32px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.cs-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+/* Note */
+.cs-note {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.25);
+  margin: 0;
+  opacity: 0;
+  transition: opacity 0.6s 0.35s;
+  position: relative;
+  z-index: 2;
+}
+
+.cs-section.cs-visible .cs-note {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .cs-title { font-size: 40px; }
+  .cs-sub   { font-size: 15px; }
+  .cs-section { padding: 80px 24px 90px; }
+}
