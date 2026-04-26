@@ -355,3 +355,8 @@ For issues, questions, or contributions, please open an issue or contact the dev
 
 
 ## Guide
+<img width="1915" height="907" alt="c-editor" src="https://github.com/user-attachments/assets/daea41d9-d1e0-48c3-8d4b-da0e05edddb8" />
+<img width="1917" height="905" alt="c-mydocspin" src="https://github.com/user-attachments/assets/06266490-bddb-45ca-8ccc-b6d9f2a37531" />
+
+
+
