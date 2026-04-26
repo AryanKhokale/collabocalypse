@@ -358,27 +358,72 @@ For issues, questions, or contributions, please open an issue or contact the dev
 
 ### Get Started
 <img width="1918" height="906" alt="c-landingpage" src="https://github.com/user-attachments/assets/64b687a9-b2bf-46fb-8534-2345d6de3221" />
+- Features - Would show the fetaures of the collabocalypse and a demo to use it
+- GitHub - Would show the official github repository of collabocalypse
+- Get Started - will get u started !
+- Redirect user to the Sign In page
 
 ### Sign in with Google
 <img width="1918" height="902" alt="c-signin" src="https://github.com/user-attachments/assets/91339c24-9a35-4750-9c4f-36a1e465cd6a" />
+- Sign in with google for easy authentication process
+- Redirect user to the Home page
 
 ### Home
 <img width="1918" height="900" alt="c-createdoc" src="https://github.com/user-attachments/assets/b9b6bf29-90a9-4ec8-b779-093d89e82a22" />
+- User is now ready to interact with the components of Collabocalypse
+- Create a new blank document
+- Enter the document name ( NOTE --> Document name must be unique i.e any 2 documents cant have the same name )
+- Enter the folder name you want to add this document into (By Default --> folder = Workspace, User may edit the folder name)
+- If the entered folder is not present then it would be created automatically
+- User may also select from the available folders
+- User who creates the document would also be the ADMIN of that document
+- ADMIN of the document cant be changed
+- Each document can have only one ADMIN
+- Redirect user to the Editor Space
+
 
 ### Editor
 <img width="1915" height="907" alt="c-editor" src="https://github.com/user-attachments/assets/d354a0ae-6b5f-418b-935e-b5a2ad67bd41" />
+- User can start collaborating and edit the document
+- Create a new blank document
+- Enter the document name ( NOTE --> Document name must be unique i.e any 2 documents cant have the same name )
+- Enter the folder name you want to add this document into (By Default --> folder = Workspace, User may edit the folder name)
+- If the entered folder is not present then it would be created automatically
+- User may also select from the available folders
+- Redirect user to the Editor Space
 
 ### Share to users
 <img width="1918" height="900" alt="c-editorshare" src="https://github.com/user-attachments/assets/44b7b44d-f3f7-443e-aad0-598047b091e3" />
+- Only ADMIN can add multiple users, via userid, to edit the document collaberatively
+- userid = user_email
+- User can add one or more than one users at a time ( eg --> 'abc@gmail.com' or 'd@gmail.com, e@gmail.com, ...' )
+- Only added or allowed users, by the ADMIN, for a document, can access that document
 
 ### Create a document with diffrent prebuilt templates
 <img width="1918" height="912" alt="c-createwithtempl" src="https://github.com/user-attachments/assets/e90a8a23-eb7a-44df-9adf-bea23a067208" />
+Collabocalypse also provides document with diffrent prebuilt templates
+- User can select the template, he/she/they wants to create a document for
+- A prebuilt dummy format would be already present for the ease of the user
+- For now, there are total 6 prebuilt templates available in collabocalypse
+
+1. Letter
+2. Informal Letter
+3. Project Proposal
+4. Meeting Notes
+5. Resume
+6. Business Letter
 
 ### (Example) Content in a document created with 'Informal Letter' template
 <img width="1915" height="905" alt="c-createwithtempeg" src="https://github.com/user-attachments/assets/48cfd79f-d3f1-46fa-a627-63d9952173e6" />
+In this, the user created a document with 'Informal Letter' template
 
 ### Open any document by its docid
 <img width="1917" height="908" alt="c-opendocs" src="https://github.com/user-attachments/assets/2fb86b42-edae-451c-acfd-9da3ae2f4d81" />
+- User can also open any document via 'Open Document'
+- User need to enter the docid of the document, he/she/they want to open
+- If the user is in the allowed list of that document then he/she/they would have its access
+- Otherwise the access would be denied
+
 
 ### My Docs
 <img width="1917" height="905" alt="c-mydocspin" src="https://github.com/user-attachments/assets/bb95174d-934c-4cac-ab90-c81c754448f2" />
