@@ -108,7 +108,7 @@ Real-time edits are not written directly to the database. Instead, writes occur 
 3. Backend updates the document state in Redis
 4. Backend publishes the update to Redis Pub/Sub
 5. Other backend instances receive the update
-6. Updates are pushed to all connected clients in real time
+6. Updates are pushed to all connected clients in real time via WebSockets
 
 #### Manual Save Flow
 
