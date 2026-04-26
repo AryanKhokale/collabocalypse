@@ -36,9 +36,9 @@ The system follows this flow:
 
 ```
 Client → NGINX (Reverse Proxy + Load Balancer) → Backend Instances → Redis (Cache + Pub/Sub) → PostgreSQL
-<img width="1112" height="603" alt="image" src="https://github.com/user-attachments/assets/c61f979f-d329-4906-b6b9-53d10cc224d8" />
 
 ```
+<img width="1112" height="603" alt="image" src="https://github.com/user-attachments/assets/c61f979f-d329-4906-b6b9-53d10cc224d8" />
 
 ### Architecture Components
 
