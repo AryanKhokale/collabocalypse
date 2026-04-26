@@ -5,13 +5,10 @@
 
 ## Features
 - **Real-time Collaborative Editing** - Multiple users can edit documents simultaneously with live updates
-- **User Management** - User authentication and role-based access control via Keycloak
-- **Real-time Synchronization** - WebSocket-powered live sync between clients
-- **Document Management** - Create, read, update, and share documents with granular permission controls
-- **Performance Optimization** - Redis caching layer for improved performance
-- **Rich Text Editor** - Integrated with React Quill for advanced text editing capabilities
-- **CORS Security** - Configured middleware for secure cross-origin requests
-- **Load Balancing** - Nginx reverse proxy configuration for production deployment
+- **WebSocket-powered Synchronization** - Instant synchronization across distributed backend instances via Redis Pub/Sub
+- **Horizontal Scalability** - Stateless architecture with load balancing supporting unlimited concurrent users
+- **Rich Text Editor** - Integrated with React Quill for advanced document editing capabilities
+- **High Performance** - Redis in-memory caching and deferred database writes for optimal throughput
 
 ## Technology Stack
 
@@ -30,179 +27,230 @@
 - **Routing**: React Router DOM 7.12+
 - **Authentication**: Keycloak integration
 
-## Project Structure
+## System Architecture
+
+Collabocalypse is designed as a distributed, real-time collaborative document editing system. The architecture separates concerns across client, routing, stateless backend services, in-memory synchronization, and persistent storage to ensure low latency, scalability, and consistency across multiple users.
+
+### High-Level Overview
+
+The system follows this flow:
 
 ```
-collabocalypse/
-├── backend/
-│   ├── main.py                           # FastAPI application entry point
-│   ├── API/
-│   │   ├── Middlewares/
-│   │   │   └── CORS.py                  # CORS middleware configuration
-│   │   └── Routes/
-│   │       ├── DocumentAPI.py           # Document CRUD endpoints
-│   │       ├── RealTimeSyncAPI.py       # Real-time sync endpoints
-│   │       └── UserAPI.py               # User management endpoints
-│   ├── Authentication/
-│   │   └── Verification.py              # Keycloak authentication logic
-│   ├── core/
-│   │   ├── config.py                    # Configuration and environment variables
-│   │   ├── dbs/
-│   │   │   ├── postgres_db.py           # PostgreSQL connection management
-│   │   │   └── redis_db.py              # Redis connection management
-│   │   └── DEPENDECIES/
-│   │       └── dependencies.py          # Dependency injection setup
-│   ├── model/                           # Data models
-│   │   ├── document.py
-│   │   ├── template.py
-│   │   └── user.py
-│   ├── repository/                      # Data access layer
-│   │   ├── document_repo.py
-│   │   ├── template_repo.py
-│   │   └── user_repo.py
-│   ├── services/                        # Business logic layer
-│   │   ├── document_service.py
-│   │   ├── document_service1.py
-│   │   ├── mail_service.py
-│   │   ├── realtime_service.py
-│   │   ├── template_service.py
-│   │   └── user_service.py
-│   ├── Websockets_handling/
-│   │   └── ConnectionManager/
-│   │       └── connection_manager.py    # WebSocket connection management
-│   └── ReverseProxy_LoadBalancing/
-│       └── nginx.conf                   # Nginx configuration
-├── frontend/
-│   ├── src/
-│   │   ├── main.jsx                     # Entry point
-│   │   ├── App.jsx                      # Root component
-│   │   ├── config.js                    # Frontend configuration
-│   │   ├── components/
-│   │   │   ├── Dashboard.jsx            # Main dashboard
-│   │   │   ├── Login.jsx                # Login component
-│   │   │   └── landing/                 # Landing page components
-│   │   └── assets/
-│   ├── public/                          # Static assets
-│   ├── keycloak-theme/                  # Custom Keycloak login theme
-│   ├── vite.config.js                   # Vite configuration
-│   ├── package.json
-│   └── eslint.config.js
-└── README.md
+Client → NGINX (Reverse Proxy + Load Balancer) → Backend Instances → Redis (Cache + Pub/Sub) → PostgreSQL
 ```
+
+### Architecture Components
+
+#### 1. Frontend (Client)
+
+The frontend is a browser-based document editor responsible for:
+
+- Capturing user input (text edits, cursor movement)
+- Sending real-time updates via WebSockets
+- Rendering updates received from other collaborators
+- Triggering save operations via HTTP requests
+
+#### 2. NGINX (Reverse Proxy and Load Balancer)
+
+NGINX acts as the entry point for all client requests.
+
+**Responsibilities:**
+- Routes incoming HTTP and WebSocket traffic to backend instances
+- Performs load balancing using the Least Connections algorithm
+- Ensures efficient distribution of long-lived WebSocket connections
+
+The Least Connections strategy is used because real-time collaboration relies on persistent connections, and this approach distributes load based on active connections rather than request count.
+
+#### 3. Backend Instances (Stateless Services)
+
+Multiple backend instances run in parallel to handle concurrent users.
+
+**Responsibilities:**
+- Maintain WebSocket connections with clients
+- Process incoming document updates
+- Synchronize document state through Redis
+- Broadcast updates to connected clients
+
+These services are stateless, allowing horizontal scaling by adding more instances without affecting system behavior.
+
+#### 4. Redis (In-Memory Data Layer)
+
+Redis serves two critical roles:
+
+**a) Cache Layer**
+- Stores the latest state of documents in memory
+- Enables low-latency read and write operations
+- Acts as the source of truth during active editing sessions
+
+**b) Pub/Sub Mechanism**
+- Enables communication between backend instances
+- Acts as a message broker for real-time synchronization
+- Ensures consistency across distributed servers
+
+When a backend instance receives an update, it publishes the change to a Redis channel. Other backend instances subscribed to that channel receive the update and propagate it to their connected clients.
+
+#### 5. PostgreSQL (Persistent Storage)
+
+PostgreSQL is used for long-term storage of documents.
+
+**Responsibilities:**
+- Stores finalized document state when explicitly saved
+- Ensures durability and consistency of data
+- Supports retrieval of documents for future sessions
+
+Real-time edits are not written directly to the database. Instead, writes occur only when a user triggers a save action, reducing database load and improving performance.
+
+### Data Flow
+
+#### Real-Time Editing Flow
+
+1. User input is captured in the frontend editor
+2. Changes are sent to the backend via WebSocket
+3. Backend updates the document state in Redis
+4. Backend publishes the update to Redis Pub/Sub
+5. Other backend instances receive the update
+6. Updates are pushed to all connected clients in real time
+
+#### Manual Save Flow
+
+1. User triggers a save action
+2. Request is routed through NGINX to a backend instance
+3. Backend retrieves the latest document state from Redis
+4. Data is written to PostgreSQL
+5. Success response is returned to the client
+
+### Load Balancing Strategy
+
+The system uses the **Least Connections** algorithm for load balancing:
+
+- Distributes traffic based on the number of active connections per backend
+- Particularly effective for WebSocket-based systems with long-lived sessions
+- Prevents uneven load distribution across instances
+
+### Key Design Decisions
+
+- Stateless backend services enable horizontal scalability
+- Redis is used as the primary synchronization layer for real-time updates
+- Pub/Sub ensures consistency across distributed backend instances
+- Database writes are deferred until explicit save actions to reduce load
+- NGINX efficiently manages incoming traffic and connection distribution
+
+### Scalability
+
+The architecture supports horizontal scaling by:
+
+- Adding more backend instances
+- Leveraging Redis for shared state and synchronization
+- Using NGINX to distribute load effectively
 
 ## Prerequisites
 
-- **Python** 3.10+
-- **Node.js** 18+
-- **PostgreSQL** 12+
-- **Redis** 6+
-- **Keycloak** 18+
-- **npm** or **yarn**
+- **Docker** 20.10+
+- **Docker Compose** 1.29+ (optional, for managing multiple containers)
 
-## Installation & Setup
+## Installation & Setup Using Docker
 
-### Backend Setup
+The application is fully containerized and can be deployed using Docker. Follow the steps below to run all services.
 
-1. **Navigate to backend directory**
-   ```bash
-   cd backend
-   ```
+### Quick Start
 
-2. **Create a virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+Start all containers in the following order:
 
-3. **Install dependencies**
-   ```bash
-   pip install fastapi uvicorn sqlalchemy quill-delta-python python-dotenv psycopg2-binary redis
-   ```
+#### 1. Start Redis Cache
+```bash
+docker run --name redis -p 6379:6379 -d redis
+```
 
-4. **Configure environment variables**
-   Create a `.env` file in the backend directory:
-   ```env
-   DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/collabocalypse
-   REDIS_URL=redis://localhost:6379
-   KEYCLOAK_URL=http://localhost:8080
-   KEYCLOAK_REALM=your_realm
-   KEYCLOAK_CLIENT_ID=your_client_id
-   KEYCLOAK_CLIENT_SECRET=your_client_secret
-   ```
+If the above command fails, use the Alpine version:
+```bash
+docker run -d -p 6379:6379 --name redis redis:alpine
+```
 
-5. **Run the backend server**
-   ```bash
-   uvicorn main:app --reload --host 0.0.0.0 --port 8000
-   ```
+#### 2. Start Keycloak Authentication Service
+```bash
+docker run -d --name collabocalypse-auth -p 9000:8080 aryankhokale/collabocalypse-auth:v2
+```
 
-The backend API will be available at `http://localhost:8000`
-- API documentation: `http://localhost:8000/docs` (Swagger UI)
+**Access Keycloak Admin Console:** `http://localhost:9000`
 
-### Frontend Setup
+#### 3. Start PostgreSQL Database
+```bash
+docker run --name collabocalypse-db -p 5433:5432 -d aryankhokale/collabocalypse-db:v2
+```
 
-1. **Navigate to frontend directory**
-   ```bash
-   cd frontend
-   ```
+#### 4. Start NGINX Reverse Proxy and Load Balancer
+```bash
+docker run -d -p 8000:80 --name collabocalypse-nginx aryankhokale/collabocalypse-nginx:v1
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+#### 5. Start Backend Services
 
-3. **Configure environment variables**
-   Create a `.env.local` file in the frontend directory:
-   ```env
-   VITE_API_BASE_URL=http://localhost:8000
-   VITE_KEYCLOAK_URL=http://localhost:8080
-   VITE_KEYCLOAK_REALM=your_realm
-   VITE_KEYCLOAK_CLIENT_ID=your_client_id
-   ```
+**Mandatory - Backend Instance 1:**
+```bash
+docker run -d -p 1000:8000 --name collabocalypse-backend1 aryankhokale/collabocalypse-backend:v5
+```
 
-4. **Run the development server**
-   ```bash
-   npm run dev
-   ```
+**Optional - Additional Backend Instances (for scaling):**
+```bash
+# Backend Instance 2
+docker run -d -p 2000:8000 --name collabocalypse-backend2 aryankhokale/collabocalypse-backend:v5
 
-The frontend will be available at `http://localhost:5173`
+# Backend Instance 3
+docker run -d -p 3000:8000 --name collabocalypse-backend3 aryankhokale/collabocalypse-backend:v5
 
-## API Endpoints
+# Backend Instance 4
+docker run -d -p 4000:8000 --name collabocalypse-backend4 aryankhokale/collabocalypse-backend:v5
 
-### Document API (`/api/documents`)
-- `GET /documents` - Retrieve all documents
-- `GET /documents/{id}` - Get a specific document
-- `POST /documents` - Create a new document
-- `PUT /documents/{id}` - Update a document
-- `DELETE /documents/{id}` - Delete a document
-- `POST /documents/{id}/share` - Share a document with users
+# Backend Instance 5
+docker run -d -p 5000:8000 --name collabocalypse-backend5 aryankhokale/collabocalypse-backend:v5
 
-### User API (`/api/users`)
-- `GET /users` - List all users
-- `GET /users/{id}` - Get user details
-- `POST /users` - Create a new user
-- `PUT /users/{id}` - Update user profile
-- `DELETE /users/{id}` - Delete a user
+# Backend Instance 6
+docker run -d -p 6000:8000 --name collabocalypse-backend6 aryankhokale/collabocalypse-backend:v5
 
-### Real-time Sync API (`/api/sync`)
-- `WebSocket /ws/documents/{id}` - Connect to real-time document synchronization
-- `POST /sync/changes` - Sync document changes
+# Backend Instance 7
+docker run -d -p 7000:8000 --name collabocalypse-backend7 aryankhokale/collabocalypse-backend:v5
+```
 
-## WebSocket Usage
+#### 6. Start Frontend Application
+```bash
+docker run --name collabocalypse-frontend -d -p 5173:5173 aryankhokale/collabocalypse-frontend:v2
+```
 
-Connect to the WebSocket endpoint to receive real-time updates:
+### Access the Application
 
-```javascript
-const ws = new WebSocket('ws://localhost:8000/ws/documents/doc_id');
+Once all containers are running:
 
-ws.onmessage = (event) => {
-  const update = JSON.parse(event.data);
-  // Handle real-time document updates
-};
+- **Frontend Application:** `http://localhost:5173`
+- **NGINX Load Balancer:** `http://localhost:8000`
+- **Backend API (Direct):** `http://localhost:1000`
+- **Keycloak Admin:** `http://localhost:9000`
+- **API Documentation:** `http://localhost:8000/docs` (Swagger UI)
 
-ws.send(JSON.stringify({
-  type: 'change',
-  content: deltaChange
-}));
+### Container Management
+
+#### View Running Containers
+```bash
+docker ps
+```
+
+#### Stop All Containers
+```bash
+docker stop redis collabocalypse-auth collabocalypse-db collabocalypse-nginx collabocalypse-backend1 collabocalypse-backend2 collabocalypse-backend3 collabocalypse-backend4 collabocalypse-backend5 collabocalypse-backend6 collabocalypse-backend7 collabocalypse-frontend
+```
+
+#### Remove Containers
+```bash
+docker rm redis collabocalypse-auth collabocalypse-db collabocalypse-nginx collabocalypse-backend1 collabocalypse-backend2 collabocalypse-backend3 collabocalypse-backend4 collabocalypse-backend5 collabocalypse-backend6 collabocalypse-backend7 collabocalypse-frontend
+```
+
+#### View Container Logs
+```bash
+docker logs <container_name>
+```
+
+#### Example: View Backend Instance 1 Logs
+```bash
+docker logs collabocalypse-backend1
 ```
 
 ## Authentication
@@ -225,43 +273,50 @@ The application uses **Keycloak** for authentication:
 
 ## Deployment
 
-### Using Nginx (Load Balancing)
-The project includes an Nginx configuration for reverse proxying and load balancing:
+The application is production-ready with Docker containers. All components are containerized and can be deployed to any Docker-compatible platform (Docker Swarm, Kubernetes, cloud providers, etc.).
 
-```bash
-nginx -c /path/to/ReverseProxy_LoadBalancing/nginx.conf
-```
+### Production Considerations
 
-### Docker Setup (Optional)
-Create a `docker-compose.yml` for containerized deployment with PostgreSQL and Redis services.
+- Use docker-compose for orchestration in production
+- Implement container health checks
+- Set resource limits for each container
+- Use environment-specific configuration
+- Enable logging aggregation
+- Set up monitoring and alerting
 
 ## Development Workflow
 
-### Running Tests
-```bash
-# Backend
-cd backend
-pytest
+### Container Inspection
 
-# Frontend
-cd frontend
-npm run test
+View logs from any running container:
+```bash
+docker logs -f <container_name>
 ```
 
-### Code Linting
+### Scaling Backend Services
+
+To scale the application for higher load, start additional backend instances:
+
 ```bash
-# Frontend
-npm run lint
+# Start a new backend instance on a different port
+docker run -d -p <new_port>:8000 --name collabocalypse-backend<N> aryankhokale/collabocalypse-backend:v5
 ```
 
-### Building for Production
-```bash
-# Backend (already production-ready with FastAPI)
-uvicorn main:app --host 0.0.0.0 --port 8000
+The NGINX load balancer automatically distributes traffic across all running backend instances using the Least Connections algorithm.
 
-# Frontend
-npm run build
-# Output will be in dist/ directory
+### Health Checks
+
+Verify all services are running:
+
+```bash
+# Check Redis
+docker exec redis redis-cli ping
+
+# Check Backend (if accessible)
+curl http://localhost:8000/health
+
+# View all running containers
+docker ps
 ```
 
 ## Troubleshooting
