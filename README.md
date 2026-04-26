@@ -355,8 +355,33 @@ For issues, questions, or contributions, please open an issue or contact the dev
 
 
 ## Guide
-<img width="1915" height="907" alt="c-editor" src="https://github.com/user-attachments/assets/daea41d9-d1e0-48c3-8d4b-da0e05edddb8" />
-<img width="1917" height="905" alt="c-mydocspin" src="https://github.com/user-attachments/assets/06266490-bddb-45ca-8ccc-b6d9f2a37531" />
+
+<img width="1918" height="906" alt="c-landingpage" src="https://github.com/user-attachments/assets/64b687a9-b2bf-46fb-8534-2345d6de3221" />
+
+<img width="1918" height="902" alt="c-signin" src="https://github.com/user-attachments/assets/91339c24-9a35-4750-9c4f-36a1e465cd6a" />
+
+<img width="1918" height="900" alt="c-createdoc" src="https://github.com/user-attachments/assets/b9b6bf29-90a9-4ec8-b779-093d89e82a22" />
+
+<img width="1915" height="907" alt="c-editor" src="https://github.com/user-attachments/assets/d354a0ae-6b5f-418b-935e-b5a2ad67bd41" />
+
+<img width="1918" height="900" alt="c-editorshare" src="https://github.com/user-attachments/assets/44b7b44d-f3f7-443e-aad0-598047b091e3" />
+
+<img width="1918" height="912" alt="c-createwithtempl" src="https://github.com/user-attachments/assets/e90a8a23-eb7a-44df-9adf-bea23a067208" />
+
+<img width="1915" height="905" alt="c-createwithtempeg" src="https://github.com/user-attachments/assets/48cfd79f-d3f1-46fa-a627-63d9952173e6" />
+
+<img width="1917" height="908" alt="c-opendocs" src="https://github.com/user-attachments/assets/2fb86b42-edae-451c-acfd-9da3ae2f4d81" />
+
+<img width="1917" height="905" alt="c-mydocspin" src="https://github.com/user-attachments/assets/bb95174d-934c-4cac-ab90-c81c754448f2" />
+
+<img width="1916" height="903" alt="c-mydocsnotes" src="https://github.com/user-attachments/assets/7cc060df-f428-448a-ac57-d4e3c3ca2eed" />
+
+
+
+
+
+
+
 
 
 
