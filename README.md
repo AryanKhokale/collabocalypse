@@ -1,6 +1,6 @@
 # Collabocalypse
 
-**Collabocalypse** is a collaborative real-time document editing platform that enables multiple users to work on shared documents simultaneously. It combines a robust FastAPI backend with a modern React frontend, featuring real-time synchronization via WebSockets, user authentication through Keycloak, and persistent storage with PostgreSQL and Redis caching.
+**Collabocalypse** is a collaborative real-time document editing platform that enables multiple users to work on shared documents simultaneously. It combines a robust FastAPI backend with a modern React frontend, featuring real-time synchronization via WebSockets and Message Broker, user authentication through Keycloak, and persistent storage with PostgreSQL and Redis caching.
 
 ## Features
 - **Real-time Collaborative Editing** - Multiple users can edit documents simultaneously with live updates
@@ -17,7 +17,7 @@
 - **Cache**: Redis (buffer and performance optimization)
 - **Authentication**: Keycloak
 - **Protocol**: WebSockets for real-time communication
-- **Architecture**: Async/await with SQLAlchemy ORM
+- **Architecture**: Async/await with SQLAlchemy+asyncpg ORM
 
 ### Frontend
 - **Framework**: React 18.3+
@@ -57,6 +57,8 @@ NGINX acts as the entry point for all client requests.
 - Routes incoming HTTP and WebSocket traffic to backend instances
 - Performs load balancing using the Least Connections algorithm
 - Ensures efficient distribution of long-lived WebSocket connections
+- Acts as a GATEWAY for backend API
+- Enhances security by preventing direct exposure of server ports to clients and eliminating direct client-side access to server interfaces
 
 The Least Connections strategy is used because real-time collaboration relies on persistent connections, and this approach distributes load based on active connections rather than request count.
 
@@ -65,7 +67,7 @@ The Least Connections strategy is used because real-time collaboration relies on
 Multiple backend instances run in parallel to handle concurrent users.
 
 **Responsibilities:**
-- Maintain WebSocket connections with clients
+- Each instance maintains a WebSocket connections with clients
 - Process incoming document updates
 - Synchronize document state through Redis
 - Broadcast updates to connected clients
@@ -129,7 +131,7 @@ The system uses the **Least Connections** algorithm for load balancing:
 ### Key Design Decisions
 
 - Stateless backend services enable horizontal scalability
-- Redis is used as the primary synchronization layer for real-time updates
+- Redis is used as the primary synchronization and cache layer for real-time updates
 - Pub/Sub ensures consistency across distributed backend instances
 - Database writes are deferred until explicit save actions to reduce load
 - NGINX efficiently manages incoming traffic and connection distribution
