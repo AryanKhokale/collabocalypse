@@ -354,89 +354,107 @@ For issues, questions, or contributions, please open an issue or contact the dev
 **Last Updated**: April 2026
 
 
-## Guide
+## 🚀 Guide
 
-### Get Started
+### 🟢 Get Started
 <img width="1918" height="906" alt="c-landingpage" src="https://github.com/user-attachments/assets/64b687a9-b2bf-46fb-8534-2345d6de3221" />
-- Features - Would show the fetaures of the collabocalypse and a demo to use it
-- GitHub - Would show the official github repository of collabocalypse
-- Get Started - will get u started !
-- Redirect user to the Sign In page
 
-### Sign in with Google
+- **Features** – Shows the features of Collabocalypse along with a demo  
+- **GitHub** – Links to the official GitHub repository  
+- **Get Started** – Entry point to begin using the app  
+- Redirects the user to the **Sign-In page**
+
+---
+
+### 🔐 Sign in with Google
 <img width="1918" height="902" alt="c-signin" src="https://github.com/user-attachments/assets/91339c24-9a35-4750-9c4f-36a1e465cd6a" />
-- Sign in with google for easy authentication process
-- Redirect user to the Home page
 
-### Home
+- Sign in using Google for an easy authentication process  
+- Redirects the user to the **Home page**
+
+---
+
+### 🏠 Home
 <img width="1918" height="900" alt="c-createdoc" src="https://github.com/user-attachments/assets/b9b6bf29-90a9-4ec8-b779-093d89e82a22" />
-- User is now ready to interact with the components of Collabocalypse
-- Create a new blank document
-- Enter the document name ( NOTE --> Document name must be unique i.e any 2 documents cant have the same name )
-- Enter the folder name you want to add this document into (By Default --> folder = Workspace, User may edit the folder name)
-- If the entered folder is not present then it would be created automatically
-- User may also select from the available folders
-- User who creates the document would also be the ADMIN of that document
-- ADMIN of the document cant be changed
-- Each document can have only one ADMIN
-- Redirect user to the Editor Space
 
+- User can now interact with Collabocalypse features  
+- Create a new blank document  
+- Enter a **unique document name** (no duplicates allowed)  
+- Choose a folder:
+  - Default: **Workspace**
+  - Custom folder names allowed  
+- If the folder does not exist, it will be created automatically  
+- User can also select from available folders  
+- The creator becomes the **ADMIN**:
+  - Only one ADMIN per document  
+  - ADMIN cannot be changed  
+- Redirects the user to the **Editor**
 
-### Editor
+---
+
+### ✏️ Editor
 <img width="1915" height="907" alt="c-editor" src="https://github.com/user-attachments/assets/d354a0ae-6b5f-418b-935e-b5a2ad67bd41" />
-- User can start collaborating and edit the document
-- Create a new blank document
-- Enter the document name ( NOTE --> Document name must be unique i.e any 2 documents cant have the same name )
-- Enter the folder name you want to add this document into (By Default --> folder = Workspace, User may edit the folder name)
-- If the entered folder is not present then it would be created automatically
-- User may also select from the available folders
-- Redirect user to the Editor Space
 
-### Share to users
+- Start collaborating and editing documents  
+- Create a new blank document  
+- Enter a **unique document name**  
+- Choose or create a folder (default: **Workspace**)  
+- If the folder does not exist, it will be created automatically  
+- User can select from available folders  
+- Redirects to the **Editor workspace**
+
+---
+
+### 👥 Share with Users
 <img width="1918" height="900" alt="c-editorshare" src="https://github.com/user-attachments/assets/44b7b44d-f3f7-443e-aad0-598047b091e3" />
-- Only ADMIN can add multiple users, via userid, to edit the document collaberatively
-- userid = user_email
-- User can add one or more than one users at a time ( eg --> 'abc@gmail.com' or 'd@gmail.com, e@gmail.com, ...' )
-- Only added or allowed users, by the ADMIN, for a document, can access that document
 
-### Create a document with diffrent prebuilt templates
+- Only the **ADMIN** can add users  
+- Users are added via **email (user ID)**  
+- Multiple users can be added at once:
+  - Example: `abc@gmail.com, xyz@gmail.com`  
+- Only authorized users can access the document  
+
+---
+
+### 📄 Create Documents with Prebuilt Templates
 <img width="1918" height="912" alt="c-createwithtempl" src="https://github.com/user-attachments/assets/e90a8a23-eb7a-44df-9adf-bea23a067208" />
-Collabocalypse also provides document with diffrent prebuilt templates
-- User can select the template, he/she/they wants to create a document for
-- A prebuilt dummy format would be already present for the ease of the user
-- For now, there are total 6 prebuilt templates available in collabocalypse
 
-1. Letter
-2. Informal Letter
-3. Project Proposal
-4. Meeting Notes
-5. Resume
-6. Business Letter
+- Collabocalypse provides prebuilt document templates  
+- User can select a template based on their needs  
+- Each template includes a predefined structure  
+- Currently available templates:
 
-### (Example) Content in a document created with 'Informal Letter' template
+1. Letter  
+2. Informal Letter  
+3. Project Proposal  
+4. Meeting Notes  
+5. Resume  
+6. Business Letter  
+
+---
+
+### 📝 Example: Informal Letter Template
 <img width="1915" height="905" alt="c-createwithtempeg" src="https://github.com/user-attachments/assets/48cfd79f-d3f1-46fa-a627-63d9952173e6" />
-In this, the user created a document with 'Informal Letter' template
 
-### Open any document by its docid
+- Example of a document created using the **Informal Letter** template  
+
+---
+
+### 🔎 Open Document by Doc ID
 <img width="1917" height="908" alt="c-opendocs" src="https://github.com/user-attachments/assets/2fb86b42-edae-451c-acfd-9da3ae2f4d81" />
-- User can also open any document via 'Open Document'
-- User need to enter the docid of the document, he/she/they want to open
-- If the user is in the allowed list of that document then he/she/they would have its access
-- Otherwise the access would be denied
 
+- Open a document using its **doc ID**  
+- Enter the document ID to access it  
+- Access rules:
+  - If the user is authorized → Access granted  
+  - Otherwise → Access denied  
 
-### My Docs
+---
+
+### 📁 My Docs
 <img width="1917" height="905" alt="c-mydocspin" src="https://github.com/user-attachments/assets/bb95174d-934c-4cac-ab90-c81c754448f2" />
 
-### Notes
+---
+
+### 🗒️ Notes
 <img width="1916" height="903" alt="c-mydocsnotes" src="https://github.com/user-attachments/assets/7cc060df-f428-448a-ac57-d4e3c3ca2eed" />
-
-
-
-
-
-
-
-
-
-
