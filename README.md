@@ -393,15 +393,37 @@ For issues, questions, or contributions, please open an issue or contact the dev
 
 ---
 
-### ✏️ Editor
-<img width="1915" height="907" alt="c-editor" src="https://github.com/user-attachments/assets/d354a0ae-6b5f-418b-935e-b5a2ad67bd41" />
 
-- Start collaborating and editing documents  
-- Create a new blank document  
-- Enter a **unique document name**  
-- Choose or create a folder (default: **Workspace**)  
-- If the folder does not exist, it will be created automatically  
-- User can select from available folders
+## ✏️ Editor
+
+<img width="1915" height="907" alt="editor-preview" src="https://github.com/user-attachments/assets/d354a0ae-6b5f-418b-935e-b5a2ad67bd41" />
+
+The **Editor** is the core workspace designed for seamless real-time collaboration.
+
+---
+
+### 🤝 Collaboration
+
+* Multiple users can **edit the document simultaneously**.
+* All changes are **synchronized in real time** across connected users.
+* Updates made by any user are **instantly broadcasted** to others with minimal latency.
+
+---
+
+### ⚡ Real-Time Experience
+
+* Provides a **collaborative and responsive editing environment**.
+* Ensures all users are always viewing the **latest state of the document**.
+
+---
+
+## 🧰 Toolbar
+
+* A dedicated **toolbar** is available for document customization and formatting.
+* Includes all essential tools required for **editing and styling content**.
+* Designed to be **intuitive and user-friendly** for a smooth experience.
+
+
 
 ---
 
@@ -449,8 +471,19 @@ If the status shows **Disconnected**, it may be due to one of the following reas
 - Only authorized users can access the document
 - **Invitation mail is sent to the respective users**
 <img width="1918" height="907" alt="image" src="https://github.com/user-attachments/assets/8ec72fcf-c9bf-4594-9a8e-f35ada0e35cb" />
-  - **The invitation message body follows the mentioned(below) template**
-     - You've been invited to collaborate on **{document id}**: **{link to that document}**
+
+### ✉️ Invitation Template
+
+* The invitation email body follows the standardized format below:
+
+  * **Message Format:**
+    *You’ve been invited to collaborate on* **{document_id}**: **{document_link}**
+
+* Replace the placeholders dynamically:
+
+  * `{document_id}` → Unique identifier of the document
+  * `{document_link}` → Direct access link to the document
+
 ---
 
 ## 💾 Save Version
@@ -510,14 +543,14 @@ Follow these steps to resolve the conflict:
 
 > 📝 **NOTE :** There will be **no inconsistency, data loss, or overwriting** even if your version is not the latest. The version number is used **only to control save conditions**. Regardless of the version, the editor always displays the **latest real-time content and updates**. Being on an older version does **not** mean you are viewing outdated data.
 
-<img width="1919" height="899" alt="image" src="https://github.com/user-attachments/assets/9db4abcc-0539-45d2-aeda-6eaf903e4a59" />
+---
 
-
-
-<img width="1918" height="907" alt="c-verconflict" src="https://github.com/user-attachments/assets/0186d712-4a4a-4185-bc26-483eb95e0092" />
-
-
-
+>  ⏳ **CACHE NOTE:** If a user forgets to save, the **unsaved content is temporarily stored in cache for up to 1 hour**. During this period:
+>
+> * Other users opening the document may see this unsaved content.
+> * The content can still be saved within this time window.
+>
+> After **1 hour**, if the content has not been saved, it will be **permanently discarded**.
 
 ---
 ## 🗑️ Delete
@@ -575,15 +608,143 @@ Follow these steps to resolve the conflict:
 - Enter the document ID to access it  
 - Access rules:
   - If the user is authorized → Access granted  
-  - Otherwise → Access denied  
+  - Otherwise → Access denied
+
+## 🚫 Access Denied
+
+<img width="1919" height="964" alt="access-denied-preview" src="https://github.com/user-attachments/assets/61244e19-42b7-4cfd-a49b-8f282100ab15" />
+
+If access to a document is denied, it may be due to one of the following reasons:
+
+* 🔒 **Unauthorized Access**
+  The user has not been granted access by the **ADMIN** of the document.
+
+* 🗑️ **Document Deleted**
+  The document may have been removed by the **ADMIN**.
+
+* ⚙️ **Server Unavailable**
+  The server may be down or temporarily under maintenance.
+
+---
+
+
 <img width="1919" height="964" alt="image" src="https://github.com/user-attachments/assets/61244e19-42b7-4cfd-a49b-8f282100ab15" />
 
 ---
 
 ### 📁 My Docs
-<img width="1917" height="905" alt="c-mydocspin" src="https://github.com/user-attachments/assets/bb95174d-934c-4cac-ab90-c81c754448f2" />
+
+<img width="1917" height="905" alt="mydocs-preview" src="https://github.com/user-attachments/assets/bb95174d-934c-4cac-ab90-c81c754448f2" />
+
+The **My Docs** section provides a centralized view of all user-specific documents and activities.
 
 ---
 
-### 🗒️ Notes
-<img width="1916" height="903" alt="c-mydocsnotes" src="https://github.com/user-attachments/assets/7cc060df-f428-448a-ac57-d4e3c3ca2eed" />
+### 📌 Overview
+
+* Displays all **personal documents** associated with the user.
+* Shows a summary of **recent activities** for quick access.
+* Enables users to **browse and manage** their documents efficiently.
+* Offers an **abstract view** of all documents with key metadata.
+
+---
+
+### 🔍 Sorting Options
+
+Users can organize documents using the following views:
+
+1. **Recent**
+
+   * Displays up to **5 most recently accessed documents**.
+
+2. **A–Z**
+
+   * Displays all documents in **alphabetical order**.
+
+---
+
+### 📄 Document Insights
+
+Each document preview includes:
+
+* 🕒 **Last opened date and time**
+
+* 👥 **Number of collaborators**
+
+* Users can view collaborator IDs by **hovering over the collaborator indicator**:
+
+<img width="1918" height="905" alt="collaborators-preview" src="https://github.com/user-attachments/assets/f09d345b-8178-4ebf-894b-89277bab72a3" />
+
+---
+
+### ⭐ Key Features
+
+* 📌 **Pin Documents**
+  Mark important documents for quick access.
+
+* 🔎 **Search Documents**
+  Locate documents by entering the **Document ID** in the search bar.
+
+---
+
+### 🗂️ Workspace Management
+
+* Users have a **personalized workspace** to organize documents.
+* Create folders for different purposes and **move documents accordingly**.
+* Folders can be **deleted at any time**:
+
+  * Upon deletion, all contained documents are moved to the default **Workspace** folder.
+
+---
+
+### ✏️ Additional Actions
+
+* 📝 **Rename Documents**
+  Update document names as needed.
+
+* 🔗 **Share Documents**
+  Clicking **Share** copies the document link directly to the clipboard.
+
+---
+
+> 💡 **Tip:** Use folders and pinning together to keep your most important documents easily accessible.
+
+---
+
+## 🗒️ Notes
+
+<img width="1916" height="903" alt="notes-preview" src="https://github.com/user-attachments/assets/7cc060df-f428-448a-ac57-d4e3c3ca2eed" />
+
+The **Notes** section provides a dedicated space for users to manage personal tasks and reminders.
+
+---
+
+### ✍️ Features
+
+* 📝 **Personal Notes**
+  Maintain a personalized list of daily tasks or important reminders.
+
+* 🔄 **Edit & Update**
+  Easily modify existing notes based on changing requirements.
+
+* ❌ **Delete Tasks**
+  Remove completed or unnecessary tasks at any time.
+
+---
+
+## 🚪 Logout
+
+* Users can **log out at any time** from their current session.
+* Logging out allows users to **switch accounts** or securely end their session.
+
+---
+
+> 💡 **Tip:** Regularly updating your notes can help you stay organized and improve productivity.
+
+---
+
+## 🙌 Thank You
+
+Thank you for using the platform! We hope you have a seamless and productive collaboration experience.
+
+
