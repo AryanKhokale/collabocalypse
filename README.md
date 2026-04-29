@@ -406,7 +406,7 @@ The **Editor** is the core workspace designed for seamless real-time collaborati
 
 * Multiple users can **edit the document simultaneously**.
 * All changes are **synchronized in real time** across connected users.
-* Updates made by any user are **instantly broadcasted** to others with minimal latency.
+* Updates made by any user are **instantly broadcasted** to others with negligible latency.
 
 ---
 
