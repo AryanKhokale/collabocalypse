@@ -401,23 +401,94 @@ For issues, questions, or contributions, please open an issue or contact the dev
 - Enter a **unique document name**  
 - Choose or create a folder (default: **Workspace**)  
 - If the folder does not exist, it will be created automatically  
-- User can select from available folders  
+- User can select from available folders
+
+---
+
+
+
+ ## 🚦 Status
+
+### 🟢 Connected
+
+When the status shows **Connected**, the system is fully operational and the user can continue working seamlessly.
+
+---
+
+### 🔴 Disconnected
 <img width="1916" height="896" alt="image" src="https://github.com/user-attachments/assets/5da407a4-fd88-4c53-9aa5-7e86b89783eb" />
+
+If the status shows **Disconnected**, it may be due to one of the following reasons:
+
+*  **Server Unavailable**
+  The server may be down or temporarily under maintenance.
+
+*  **Document Removed**
+  The document might have been deleted by the administrator.
+
+* 🔒 **Access Restricted**
+  The user may not have the necessary permissions to access the document.
+
+---
+
+> 💡 **Tip:** If the issue persists, try refreshing the page or contacting the administrator.
+
 
 ---
 
 ### 👥 Share with Users
 <img width="1918" height="900" alt="c-editorshare" src="https://github.com/user-attachments/assets/44b7b44d-f3f7-443e-aad0-598047b091e3" />
 
-- Only the **ADMIN** can add users  
+- **Only the ADMIN can add users**
+   - Non ADMIN does not have the priviledge to add a user
+  <img width="1917" height="902" alt="image" src="https://github.com/user-attachments/assets/371d0522-4bdf-4e3e-b279-f809c18f052d" />
+  
 - Users are added via **email (user ID)**  
 - Multiple users can be added at once:
   - Example: `abc@gmail.com, xyz@gmail.com`  
-- Only authorized users can access the document  
+- Only authorized users can access the document
+- **Invitation mail is sent to the respective users**
 <img width="1918" height="907" alt="image" src="https://github.com/user-attachments/assets/8ec72fcf-c9bf-4594-9a8e-f35ada0e35cb" />
+  - **The invitation message body follows the mentioned(below) template**
+     - You've been invited to collaborate on **{document id}**: **{link to that document}**
+---
+
+### Save Version
+
+ - A document is initially created with **Version : 0**
+ - After each manual Save, the version is incremented by 1
+ - Version depicts the number of save this corresponding document has undergone and if the user is totally synced with the latest version
+ - After hitting Save, system takes the snapshot of the editor and stores it on a current + 1 version
+ - Below is the example of diffrent Version 
 <img width="1919" height="899" alt="image" src="https://github.com/user-attachments/assets/9db4abcc-0539-45d2-aeda-6eaf903e4a59" />
 
+- After 
+
 <img width="1918" height="907" alt="c-verconflict" src="https://github.com/user-attachments/assets/0186d712-4a4a-4185-bc26-483eb95e0092" />
+
+
+---
+## 🗑️ Delete
+
+<img width="1919" height="899" alt="delete-preview" src="https://github.com/user-attachments/assets/071bb76a-4259-4bce-be09-c770caccb7d6" />
+
+### 🔐 Admin Privileges Only
+
+* Only users with **ADMIN** rights are authorized to delete a document.
+* Non-admin users **do not** have permission to perform this action.
+  <img width="1919" height="899" alt="image" src="https://github.com/user-attachments/assets/071bb76a-4259-4bce-be09-c770caccb7d6" />
+
+---
+
+### ⚠️ Permanent Action
+
+* Once a document is deleted, the action is **irreversible**.
+* The document **cannot be recovered** in the future.
+
+---
+
+> 💡 **Warning:** Please ensure you really intend to delete the document before proceeding, as this action cannot be undone.
+
 
 
 ---
