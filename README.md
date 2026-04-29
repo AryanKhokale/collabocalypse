@@ -424,14 +424,14 @@ If the status shows **Disconnected**, it may be due to one of the following reas
   The server may be down or temporarily under maintenance.
 
 *  **Document Removed**
-  The document might have been deleted by the administrator.
+  The document might have been deleted by the ADMIN.
 
 * 🔒 **Access Restricted**
   The user may not have the necessary permissions to access the document.
 
 ---
 
-> 💡 **Tip:** If the issue persists, try refreshing the page or contacting the administrator.
+> 💡 **Tip:** If the issue persists, try refreshing the page or contacting the ADMIN of the document.
 
 
 ---
@@ -453,24 +453,75 @@ If the status shows **Disconnected**, it may be due to one of the following reas
      - You've been invited to collaborate on **{document id}**: **{link to that document}**
 ---
 
-### Save Version
+## 💾 Save Version
 
- - A document is initially created with **Version : 0**
- - After each manual Save, the version is incremented by 1
- - Version depicts the number of save this corresponding document has undergone and if the user is totally synced with the latest version
- - After hitting Save, system takes the snapshot of the editor and stores it on a current + 1 version
- - Below is the example of diffrent Version 
+<img width="1919" height="899" alt="version-preview" src="https://github.com/user-attachments/assets/9db4abcc-0539-45d2-aeda-6eaf903e4a59" />
+
+### 🔢 Versioning System
+
+* Every document is initially created with **Version: 0**.
+* Each time the user performs a manual **Save**, the version number increments by **+1**.
+* The version number represents:
+
+  * The total number of successful saves.
+  * Whether the user is working on the **latest version** of the document.
+
+---
+
+### 📸 Snapshot Mechanism
+
+* On clicking **Save**, the system:
+
+  * Captures a snapshot of the current editor state.
+  * Stores it as the next version (**current version + 1**).
+---
+
+> ⏳ **CACHE NOTE:** If a user forgets to save, the **unsaved content is temporarily stored in cache for up to 1 hour**. During this period:
+>
+> * Other users opening the document may see this unsaved content.
+> * The content can still be saved within this time window.
+>
+> After **1 hour**, if the content has not been saved, it will be **permanently discarded**.
+
+---
+
+## ⚠️ Version Conflict
+
+<img width="1918" height="907" alt="version-conflict" src="https://github.com/user-attachments/assets/0186d712-4a4a-4185-bc26-483eb95e0092" />
+
+### 🚫 When Does Conflict Occur?
+
+* Save operation is allowed **only if the user is on the latest version**.
+* If a user attempts to save an **outdated version**, a **version conflict** will occur.
+
+---
+
+### 🛠️ How to Resolve
+
+Follow these steps to resolve the conflict:
+
+1. 🔄 **Refresh the document**
+   Sync your editor with the latest version.
+
+2. 💾 **Save again**
+   Once updated, retry saving your changes.
+
+---
+
+> 📝 **NOTE :** There will be **no inconsistency, data loss, or overwriting** even if your version is not the latest. The version number is used **only to control save conditions**. Regardless of the version, the editor always displays the **latest real-time content and updates**. Being on an older version does **not** mean you are viewing outdated data.
+
 <img width="1919" height="899" alt="image" src="https://github.com/user-attachments/assets/9db4abcc-0539-45d2-aeda-6eaf903e4a59" />
 
-- After 
+
 
 <img width="1918" height="907" alt="c-verconflict" src="https://github.com/user-attachments/assets/0186d712-4a4a-4185-bc26-483eb95e0092" />
+
+
 
 
 ---
 ## 🗑️ Delete
 
-<img width="1919" height="899" alt="delete-preview" src="https://github.com/user-attachments/assets/071bb76a-4259-4bce-be09-c770caccb7d6" />
 
 ### 🔐 Admin Privileges Only
 
