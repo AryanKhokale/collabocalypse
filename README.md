@@ -693,10 +693,10 @@ Each document preview includes:
 
 ### ✏️ Additional Actions
 
-* 📝 **Rename Documents**
+* 📝 **Rename Documents :**
   Update document names as needed.
 
-* 🔗 **Share Documents**
+* 🔗 **Share Documents :**
   Clicking **Share** copies the document link directly to the clipboard.
 
 ---
