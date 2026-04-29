@@ -507,14 +507,6 @@ If the status shows **Disconnected**, it may be due to one of the following reas
 
   * Captures a snapshot of the current editor state.
   * Stores it as the next version (**current version + 1**).
----
-
-> ⏳ **CACHE NOTE:** If a user forgets to save, the **unsaved content is temporarily stored in cache for up to 1 hour**. During this period:
->
-> * Other users opening the document may see this unsaved content.
-> * The content can still be saved within this time window.
->
-> After **1 hour**, if the content has not been saved, it will be **permanently discarded**.
 
 ---
 
@@ -541,7 +533,8 @@ Follow these steps to resolve the conflict:
 
 ---
 
-> 📝 **NOTE :** There will be **no inconsistency, data loss, or overwriting** even if your version is not the latest. The version number is used **only to control save conditions**. Regardless of the version, the editor always displays the **latest real-time content and updates**. Being on an older version does **not** mean you are viewing outdated data.
+> 📝 **NOTE :** There will be **no inconsistency, data loss, or overwriting** even if your version is not the latest. The version number is used **only to control save >
+conditions**. Regardless of the version, the editor always displays the **latest real-time content and updates**. Being on an older version does **not** mean you are viewing outdated data.
 
 ---
 
@@ -714,7 +707,7 @@ Each document preview includes:
 
 ## 🗒️ Notes
 
-<img width="1916" height="903" alt="notes-preview" src="https://github.com/user-attachments/assets/7cc060df-f428-448a-ac57-d4e3c3ca2eed" />
+<img width="1918" height="906" alt="image" src="https://github.com/user-attachments/assets/0cac74f6-0f23-4cf9-ac95-3ba1db7a3c8b" />
 
 The **Notes** section provides a dedicated space for users to manage personal tasks and reminders.
 
