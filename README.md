@@ -624,11 +624,12 @@ If access to a document is denied, it may be due to one of the following reasons
 
 * ⚙️ **Server Unavailable**
   The server may be down or temporarily under maintenance.
+  
 
 ---
 
+> 📝 **NOTE:** When a document is opened, it is loaded with the **latest version**, including all **saved and cached content**, ensuring users always start with the most up-to-date state.
 
-<img width="1919" height="964" alt="image" src="https://github.com/user-attachments/assets/61244e19-42b7-4cfd-a49b-8f282100ab15" />
 
 ---
 
@@ -743,8 +744,16 @@ The **Notes** section provides a dedicated space for users to manage personal ta
 
 ---
 
+## 🙌 Credits
+
+**Creators:**
+
+* Aryan V Khokale
+* Shikha Mandal
+
+---
+
 ## 🙌 Thank You
 
 Thank you for using the platform! We hope you have a seamless and productive collaboration experience.
-
 
