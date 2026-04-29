@@ -186,28 +186,28 @@ docker run -d -p 8000:80 --name collabocalypse-nginx aryankhokale/collabocalypse
 
 **Mandatory - Backend Instance 1:**
 ```bash
-docker run -d -p 1000:8000 --name collabocalypse-backend1 aryankhokale/collabocalypse-backend:v5
+docker run -d -p 1000:8000 --name collabocalypse-backend1 aryankhokale/collabocalypse-backend:v7
 ```
 
 **Optional - Additional Backend Instances (for scaling):**
 ```bash
 # Backend Instance 2
-docker run -d -p 2000:8000 --name collabocalypse-backend2 aryankhokale/collabocalypse-backend:v5
+docker run -d -p 2000:8000 --name collabocalypse-backend2 aryankhokale/collabocalypse-backend:v7
 
 # Backend Instance 3
-docker run -d -p 3000:8000 --name collabocalypse-backend3 aryankhokale/collabocalypse-backend:v5
+docker run -d -p 3000:8000 --name collabocalypse-backend3 aryankhokale/collabocalypse-backend:v7
 
 # Backend Instance 4
-docker run -d -p 4000:8000 --name collabocalypse-backend4 aryankhokale/collabocalypse-backend:v5
+docker run -d -p 4000:8000 --name collabocalypse-backend4 aryankhokale/collabocalypse-backend:v7
 
 # Backend Instance 5
-docker run -d -p 5000:8000 --name collabocalypse-backend5 aryankhokale/collabocalypse-backend:v5
+docker run -d -p 5000:8000 --name collabocalypse-backend5 aryankhokale/collabocalypse-backend:v7
 
 # Backend Instance 6
-docker run -d -p 6000:8000 --name collabocalypse-backend6 aryankhokale/collabocalypse-backend:v5
+docker run -d -p 6000:8000 --name collabocalypse-backend6 aryankhokale/collabocalypse-backend:v7
 
 # Backend Instance 7
-docker run -d -p 7000:8000 --name collabocalypse-backend7 aryankhokale/collabocalypse-backend:v5
+docker run -d -p 7000:8000 --name collabocalypse-backend7 aryankhokale/collabocalypse-backend:v7
 ```
 
 #### 6. Start Frontend Application
@@ -402,7 +402,7 @@ For issues, questions, or contributions, please open an issue or contact the dev
 - Choose or create a folder (default: **Workspace**)  
 - If the folder does not exist, it will be created automatically  
 - User can select from available folders  
-- Redirects to the **Editor workspace**
+<img width="1916" height="896" alt="image" src="https://github.com/user-attachments/assets/5da407a4-fd88-4c53-9aa5-7e86b89783eb" />
 
 ---
 
@@ -414,6 +414,10 @@ For issues, questions, or contributions, please open an issue or contact the dev
 - Multiple users can be added at once:
   - Example: `abc@gmail.com, xyz@gmail.com`  
 - Only authorized users can access the document  
+<img width="1918" height="907" alt="image" src="https://github.com/user-attachments/assets/8ec72fcf-c9bf-4594-9a8e-f35ada0e35cb" />
+<img width="1917" height="905" alt="c-version" src="https://github.com/user-attachments/assets/7d6a9239-93fb-41b9-8cde-94d6e59dedee" />
+<img width="1918" height="907" alt="c-verconflict" src="https://github.com/user-attachments/assets/0186d712-4a4a-4185-bc26-483eb95e0092" />
+
 
 ---
 
@@ -449,6 +453,7 @@ For issues, questions, or contributions, please open an issue or contact the dev
 - Access rules:
   - If the user is authorized → Access granted  
   - Otherwise → Access denied  
+<img width="1919" height="964" alt="image" src="https://github.com/user-attachments/assets/61244e19-42b7-4cfd-a49b-8f282100ab15" />
 
 ---
 
