@@ -415,7 +415,8 @@ For issues, questions, or contributions, please open an issue or contact the dev
   - Example: `abc@gmail.com, xyz@gmail.com`  
 - Only authorized users can access the document  
 <img width="1918" height="907" alt="image" src="https://github.com/user-attachments/assets/8ec72fcf-c9bf-4594-9a8e-f35ada0e35cb" />
-<img width="1917" height="905" alt="c-version" src="https://github.com/user-attachments/assets/7d6a9239-93fb-41b9-8cde-94d6e59dedee" />
+<img width="1919" height="899" alt="image" src="https://github.com/user-attachments/assets/9db4abcc-0539-45d2-aeda-6eaf903e4a59" />
+
 <img width="1918" height="907" alt="c-verconflict" src="https://github.com/user-attachments/assets/0186d712-4a4a-4185-bc26-483eb95e0092" />
 
 
