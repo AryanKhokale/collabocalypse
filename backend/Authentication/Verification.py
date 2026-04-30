@@ -1,11 +1,12 @@
 from fastapi import  HTTPException
 from jose import jwt
+from core.config import settings
 import requests
 
-KEYCLOAK_URL = "http://host.docker.internal:9000" #http://host.docker.internal:9000
-REALM = "Myapp"
+KEYCLOAK_URL = settings.KEYCLOAK_URL
+REALM = settings.REALM
 #REALM = "COLLABOCALYPSE"
-CLIENT_ID = "quill-client"
+CLIENT_ID = settings.CLIENT_ID
 
 #  public key once for verification
 keycloak_cert_url = f"{KEYCLOAK_URL}/realms/{REALM}/protocol/openid-connect/certs"
