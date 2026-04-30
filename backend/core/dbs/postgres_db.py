@@ -7,7 +7,7 @@ from core.config import settings
 
 # 1. Create the Async Engine
 # Using the DATABASE_URL from your settings
-engine = create_async_engine("postgresql+asyncpg://user:password@host.docker.internal:5433/collabocalypse_db", echo=False)
+engine = create_async_engine(settings.DATABASE_URL, echo=False)
 
 # 2. Setup the Session Factory
 # expire_on_commit=False is important for async to prevent errors when accessing attributes after commit
